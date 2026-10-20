@@ -2768,6 +2768,32 @@ body.guest .ad-headacts #admBtn:hover{opacity:.88;}
 /* 行内操作：悬停才显形，不干扰扫读 */
 .ad-acts{display:flex;gap:2px;justify-content:flex-end;opacity:0;transition:opacity .12s;}
 .ad-row:hover .ad-acts,.ad-row.sel .ad-acts,.ad-row:focus-within .ad-acts{opacity:1;}
+/* ---- R53：行内编辑（不改右边那条抽屉，就在这一行改） ----
+   ★ 输入框复用双击改名那套 .ad-edit（accent 边框 + 3px 光晕），
+     免得「同一个表格里两种输入框长得不一样」。 */
+.ad-row.editing{background:var(--surface);}
+.ad-row.editing .ad-acts{opacity:1;}
+.ad-row.editing .ad-name,
+.ad-row.editing .ad-url{min-width:170px;max-width:none;}
+.ad-editsel{padding-right:22px;cursor:pointer;}
+.ad-act.ok{color:var(--accent);border-color:var(--accent-soft);}
+.ad-act.ok:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+@media (max-width:619px){
+  /* 手机上那两格本来就窄（110），别让输入框把它撑破 */
+  .ad-row.editing .ad-name,.ad-row.editing .ad-url{min-width:0;}
+}
+/* 手机档（≤620）编辑时把这张表切成 fixed：勾选 36 与操作 64 钉死，名字 / 网址平分剩下的。
+   ------------------------------------------------------------
+   不切会怎样：表格是 auto 布局，名字列的宽度是「正常行那几个字」量出来的（≈85），
+   扣掉两侧 padding 后输入框只剩 69 —— 一行打不了几个字，改名字等于摸黑。
+   ★ 只钉两边那两列、中间留 auto 平分，是为了让 320 / 390 / 430 三种屏都自己算得准；
+     四列全写死 px 反而在小屏上溢出。
+   ★ 这张表是重画出来的，`.row-editing` 跟着旧节点一起消失，所以不会赖在正常态上。 */
+@media (max-width:620px){
+  #adPaneNav .ad-table.row-editing{table-layout:fixed;}
+  #adPaneNav .ad-table.row-editing th:nth-child(1){width:36px;}
+  #adPaneNav .ad-table.row-editing th:nth-child(10){width:64px;}
+}
 .ad-act{
   width:28px;height:28px;display:grid;place-items:center;
   border:1px solid transparent;background:transparent;border-radius:7px;
@@ -4846,14 +4872,16 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               <h3>三、导出为浏览器书签</h3>
               <p><strong>备份 / 恢复</strong> 弹窗里那颗「导出为浏览器书签（.html）」—— 把你所有的分类和链接还原成一个书签文件，可以导进任何浏览器。想「上岸」的时候用这个。</p>
               <h3>四、管理台（标签栏的「管理」）</h3>
-              <p>管理台的左边是一条<strong>通到底的侧栏</strong>：上面是站名，中间是「页面」（导航链接 / 首页 / 分享页），下面「工具」那一组就是平时散在各处的入口 —— 添加链接、导入、体检、分类、备份 / 恢复、云同步、写一条、首页、固定链接，一处就能点开，不用再跑回导航页。</p>
-              <p>点开之后它<strong>不弹窗</strong>：面板贴在右边，表格还留在左边 —— 改一条、看一眼，接着改下一条，不用在两个窗口之间来回跳。<kbd>Esc</kbd> 先收面板，再按一次才回导航页。手机上这条面板就是一整屏。</p>
+              <p>管理台的左边是一条<strong>通到底的侧栏</strong>：上面是站名，中间是「页面」（导航链接 / 首页 / 分享 / 文章），下面「工具」那一组就是平时散在各处的入口 —— 添加链接、导入、体检、分类、备份 / 恢复、云同步、写一条、写文章、首页、固定链接，一处就能点开，不用再跑回导航页。</p>
+              <p>表格里<strong>改一条链接是「就地改」的</strong>：点行尾那颗 <strong>✎</strong>，这一行的分类 / 名字 / 网址三格当场变成输入框（分类是个下拉，改它等于整条搬家），改完按 <kbd>Enter</kbd> 或那颗 <strong>✓</strong> 存，按 <kbd>Esc</kbd> 或 <strong>×</strong> 放弃 —— 眼睛不用离开这一行，也不用先去右边再回来。</p>
+              <p>别的入口（<strong>添加链接</strong>、<strong>导入书签</strong>、<strong>备份 / 恢复</strong>、<strong>首页设置</strong>、<strong>写文章</strong>……）点开之后<strong>不弹居中的窗</strong>：面板贴在右边，表格还留在左边 —— 填完、关掉、接着点下一条，不用在两个窗口之间来回跳。<kbd>Esc</kbd> 先收面板，再按一次才回导航页。手机上这条面板就是一整屏。</p>
               <p>批量整理还有一张<strong>表格</strong>：点标签栏最右边那颗「管理」，就能看到<strong>所有分类的全部链接</strong> —— 分类、名称、网址、点过几次、最后一次打开是什么时候、标签、有没有置顶（屏幕够宽时还会多一列「添加时间」）。链接多的时候表格按页翻，右下角可以选<strong>每页 50 / 100 / 500 / 全部</strong>。</p>
               <ul>
                 <li><strong>筛</strong>：上面那排能按分类、按状态筛（从未点击 / 30 天没打开 / 已置顶 / 重复网址 / 没标签），也能直接搜名字、网址、标签。</li>
                 <li><strong>勾</strong>：点任意一行就勾上，表头那个方框是「全选当前筛选结果」。</li>
                 <li><strong>批量改</strong>：勾完在顶上那一条里点「移动到…」「置顶」「取消置顶」「删除」。删除照样先问你一句，删前自动存一份快照。</li>
-                <li><strong>就地改</strong>：双击名字直接改，回车保存，<kbd>Esc</kbd> 放弃。</li>
+                <li><strong>就地改</strong>：点行尾那颗 <strong>✎</strong> → 分类 / 名字 / 网址三格一起变成输入框，行尾换成 <strong>✓</strong> / <strong>×</strong> 两颗；<kbd>Enter</kbd> 或 <strong>✓</strong> 存，<kbd>Esc</kbd> 或 <strong>×</strong> 放弃。<strong>双击名字</strong>只改名字，<strong>双击网址</strong>只改网址 —— 各有各的快路。<strong>同一时刻只有一行能改</strong>：改着这行又去点那行的 ✎，上一行会还原并提示一句。</li>
+                <li><strong>换分类</strong>：就地改的时候那颗下拉里列着所有分类，选一个再存，这条链接就<strong>整条搬过去</strong> —— 添加时间、标签、置顶都跟着走，不是复制一份。</li>
                 <li><strong>一条也不用先勾选</strong>：鼠标移到某一行，右边会冒出来四颗小按钮 —— <strong>编辑 / 置顶 / 打开 / 删除</strong>；点<strong>网址本身</strong>就复制，复制完右下角会提示。</li>
                 <li><strong>导出 CSV</strong>：把当前筛选结果导成表格文件，Excel / Numbers 都能打开。</li>
               </ul>
@@ -5195,7 +5223,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               </ul>
 
               <h3>写：在管理台右边那条编辑栏里，写和预览两态</h3>
-              <p>文章是<strong>内容</strong>，所以写和改都归<strong>后台</strong>（见 <a data-help="s17">17 管理台</a>）。在文章页点 <strong>写一篇</strong> / <strong>编辑</strong>，会把你<strong>带到管理台</strong>，面板从右边滑进来 —— 跟后台里改一条链接是同一套「就地编辑」，不再是一个盖在文章页上的大弹窗。管理台工具箱里那颗 <strong>写文章</strong> 也能直接开。</p>
+              <p>文章是<strong>内容</strong>，所以写和改都归<strong>后台</strong>（见 <a data-help="s8">08 · 四、管理台</a>）。在文章页点 <strong>写一篇</strong> / <strong>编辑</strong>，会把你<strong>带到管理台</strong>，面板从右边滑进来 —— 不再是一个盖在文章页上的大弹窗。管理台工具箱里那颗 <strong>写文章</strong> 也能直接开。</p>
               <ul>
                 <li>点 <strong>写一篇</strong>（只读状态下第一次点会先要管理员密码，跟改链接是同一道门）。<strong>没解锁的人不会被顺路送进后台</strong>：先问密码，密码对了那一下才接着把编辑栏打开。</li>
                 <li>编辑栏是<strong>贴着右边、上下通到底的一条</strong>（宽 620）。左边那张表还看得见、也点得动 —— 遮罩是透明的、不吃点击，这就是「在边上改」和「挡住你」的区别。手机上它铺满整屏。</li>
@@ -12457,6 +12485,110 @@ function adminRenameStart(td, key){
   inp.addEventListener('blur', () => finish(true));
 }
 
+/* ============================================================
+   R53：行内编辑（小宝：「不要在右侧显示，支持在箭头那里显示，这样好操作」）
+   ------------------------------------------------------------
+   原来点行上那颗 ✎，右边会滑出「编辑链接」那条抽屉。可改一条链接就是三小格字，
+   眼睛盯着这一行、手却要跑到右边去改 —— 于是改成**就地改**：
+   名字 / 网址 / 分类三个格子当场变成输入框，Enter 存、Esc 撤、✓ 存、× 撤。
+   ★ 保存仍然走原来那套清洗（补 https、mkLink 保留 t 与 pin、改分类就整条搬过去），
+     不在行内另写一份「另一套保存逻辑」——那才是以后会打架的地方。
+   ★ 只有「编辑」这一件事改成行内；添加链接 / 导入 / 移动 / 批量这些还是原来的路。
+   ★ 双击名字（老的改名）保留，双击网址也进同一套 —— 只开那一格。
+   ============================================================ */
+function adminRowEditStart(tr, key, field){
+  if (!tr) return;
+  /* 改内容要走门禁：跟原来那颗 ✎ 一样，没解锁先问密码 */
+  if (!admOK()){ requireAdmin('编辑链接').then(ok => { if (ok) adminRowEditStart(tr, key, field); }); return; }
+  const cut = key.indexOf('||'); if (cut < 0) return;
+  const cat = key.slice(0, cut), u = key.slice(cut + 2);
+  const row = adminRows().filter(r => r.cat === cat && r.u === u)[0];
+  if (!row) return;
+  /* 已经在这一格里编辑了：只把焦点挪过去，别把刚打的字冲掉 */
+  if (tr.classList.contains('editing')){
+    const f = tr.querySelector('[data-f="' + (field || 'n') + '"]');
+    if (f) { f.focus(); if (f.select) f.select(); }
+    return;
+  }
+  /* ★ 同一时刻只许一行在编辑。点 B 行的 ✎ 时，A 行没存的改动必须**说一声再收掉** ——
+     重画会把它连人带字一起清掉，不说就是「明明改了，回头一看没了」。 */
+  const prev = $('#adBody').querySelector('tr.ad-row.editing');
+  if (prev && prev !== tr){
+    renderAdminRows();
+    /* 重画后旧节点作废，按 key 从新表里把这一行找回来（别在 CSS 选择器里拼网址） */
+    const same = [].slice.call($('#adBody').querySelectorAll('tr.ad-row'))
+      .filter(x => x.dataset.key === key)[0];
+    if (same) tr = same; else return;
+    toast('上一行没存，已还原');
+  }
+  const fName = tr.querySelector('.ad-name'), fUrl = tr.querySelector('.ad-url'), fCat = tr.querySelector('.ad-cat');
+  if (!fName || !fUrl || !fCat) return;
+  tr.classList.add('editing');
+  /* 给整张表打个记号：手机档要靠它把列宽切成 fixed（见样式表那条 .row-editing） */
+  const tbl = tr.closest('table');
+  if (tbl) tbl.classList.add('row-editing');
+  fName.innerHTML = '<input class="ad-edit" data-f="n" type="text" maxlength="16" value="' + esc(row.n) + '">';
+  fUrl.innerHTML  = '<input class="ad-edit" data-f="u" type="text" spellcheck="false" value="' + esc(row.u) + '">';
+  /* 分类：列出现有全部分类，当前那个选中。改分类不用再跳去「移动」，顺手就能改 */
+  const cats = Object.keys(sites).sort((a, b) => a.localeCompare(b, 'zh'));
+  if (cats.indexOf(row.cat) < 0) cats.unshift(row.cat);
+  fCat.innerHTML = '<select class="ad-edit ad-editsel" data-f="cat">' +
+    cats.map(c => '<option value="' + esc(c) + '"' + (c === row.cat ? ' selected' : '') + '>' + esc(c) + '</option>').join('') +
+    '</select>';
+  /* 那一排小按钮换成 ✓ / ×：行内编辑要有明确的「存」和「不存」 */
+  const acts = tr.querySelector('.ad-acts');
+  if (acts) acts.innerHTML =
+    '<button class="ad-act ok" type="button" data-ract="save" title="保存（Enter）">✓</button>' +
+    '<button class="ad-act" type="button" data-ract="cancel" title="放弃（Esc）">×</button>';
+  /* ★ Enter / Esc 必须 stopPropagation：document 上那个全局 Esc 会把整页送回导航页 */
+  tr.querySelectorAll('[data-f]').forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); adminRowEditSave(tr); }
+      else if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); renderAdminRows(); toast('没改'); }
+    });
+  });
+  const first = tr.querySelector('[data-f="' + (field || 'n') + '"]');
+  if (first){ first.focus(); if (first.select && first.tagName === 'INPUT') first.select(); }
+}
+function adminRowEditSave(tr){
+  const key = tr && tr.dataset.key || '';
+  const cut = key.indexOf('||'); if (cut < 0) return false;
+  const cat0 = key.slice(0, cut), u0 = key.slice(cut + 2);
+  const row = adminRows().filter(r => r.cat === cat0 && r.u === u0)[0];
+  if (!row) return false;
+  const box = n => tr.querySelector('[data-f="' + n + '"]');
+  const name = String(box('n') ? box('n').value : row.n).replace(/\s+/g, ' ').trim().slice(0, 16);
+  let url = String(box('u') ? box('u').value : row.u).trim();
+  /* 空值不许存：行内编辑最容易「手一滑清空了再回车」 */
+  if (!name || !url){
+    toast(!name ? '名字不能空着' : '网址不能空着');
+    const bad = !name ? box('n') : box('u');
+    if (bad) bad.focus();
+    return false;
+  }
+  /* 跟弹窗那条同一套：没协议就补 https，去掉开头多余斜杠 */
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url.replace(/^\/+/, '');
+  const cat = String(box('cat') ? box('cat').value : cat0).trim() || cat0;
+  const list = sites[cat0] || [];
+  const idx = list.findIndex(s => s.u === row.u && s.n === row.n);
+  if (idx < 0) return false;
+  const old = list[idx];
+  const tags = tagsOf(row);
+  if (cat !== cat0){
+    list.splice(idx, 1);
+    if (!sites[cat]) sites[cat] = [];
+    sites[cat].push(mkLink(name, url, old.t, tags, old.pin));
+    curCat = cat;
+  } else {
+    list[idx] = mkLink(name, url, old.t, tags, old.pin);
+  }
+  save(KEY_SITES, sites);
+  clearSel();
+  renderCats(); renderCatManage(); renderLinks(); renderTop();
+  toast(cat !== cat0 ? '已保存，并移到「' + cat + '」' : '已保存：' + name);
+  return true;
+}
+
 $('#adBack').addEventListener('click', () => setView('nav'));
 $('#adReload').addEventListener('click', () => { renderAdmin(); toast('已刷新'); });
 $('#adCsv').addEventListener('click', adminExportCsv);
@@ -12485,9 +12617,16 @@ $('#adBody').addEventListener('click', e => {
   const act = e.target.closest('[data-ract]');
   if (act){
     e.preventDefault(); e.stopPropagation();
-    adminRowAction(act.dataset.ract, key.slice(0, cut), key.slice(cut + 2));
+    const ract = act.dataset.ract;
+    /* ★ R53：编辑不再开右边那条抽屉，就在这一行里改 */
+    if (ract === 'edit'){ adminRowEditStart(tr, key); return; }
+    if (ract === 'save'){ adminRowEditSave(tr); return; }
+    if (ract === 'cancel'){ renderAdminRows(); return; }
+    adminRowAction(ract, key.slice(0, cut), key.slice(cut + 2));
     return;
   }
+  /* 正在行内编辑：点输入框 / 下拉本身不该顺手把这一行「选中」 */
+  if (tr.classList.contains('editing')) return;
   if (e.target.closest('.ad-open')) { window.open(key.slice(cut + 2), '_blank', 'noopener'); return; }
   if (e.target.closest('.ad-name')) return;                    /* 名字留给双击改名 */
   /* ★★ R46：这里原来有一句 `if (e.target.closest('.ad-ck')) e.preventDefault();`
@@ -12509,6 +12648,10 @@ $('#adBody').addEventListener('click', e => {
   renderAdminBulk();
 });
 $('#adBody').addEventListener('dblclick', e => {
+  const tr0 = e.target.closest('tr.ad-row');
+  /* ★ R53：双击**网址**也是就地改（只把那一格开成输入框）——
+     以前网址那格只能「点一下复制」，想改只能去右边抽屉。 */
+  if (e.target.closest('.ad-url') && tr0){ adminRowEditStart(tr0, tr0.dataset.key, 'u'); return; }
   const td = e.target.closest('.ad-name'); if (!td) return;
   const tr = td.closest('tr'); if (!tr) return;
   adminRenameStart(td, tr.dataset.key);
