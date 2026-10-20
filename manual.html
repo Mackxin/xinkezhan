@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>使用手册 · 个人导航首页</title>
+<meta name="description" content="个人导航首页的使用手册：链接与分类怎么管、三种模式、搜索技巧、备份与云同步、放到域名上给访客用要怎么做。">
+<style>
+/* ============================================================
+   这份手册故意用跟 index.html 完全一样的一套设计变量 ——
+   两个页面放在同一个目录、同一个域名下，长得像同一套东西才对。
+   改配色的时候两边一起改（或者干脆只改主页，这里抄一份）。
+   ============================================================ */
+:root{
+  --bg:#f3f4f6;
+  --surface:rgba(255,255,255,.66);
+  --card:#ffffff;
+  --card-hi:#ffffff;
+  --text:#14161a;
+  --text-2:#5b6069;
+  --muted:#9aa0aa;
+  --line:rgba(20,22,26,.09);
+  --line-strong:rgba(20,22,26,.16);
+  --accent:#14161a;
+  --accent-soft:rgba(20,22,26,.06);
+  --r-lg:20px;
+  --r-md:14px;
+  --r-sm:10px;
+  --shadow:0 1px 2px rgba(16,18,22,.04), 0 14px 34px -18px rgba(16,18,22,.16);
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue","Microsoft YaHei",Inter,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ambient:
+    radial-gradient(900px 600px at 12% 8%, rgba(120,140,255,.10), transparent 60%),
+    radial-gradient(800px 600px at 92% 96%, rgba(255,170,190,.09), transparent 60%);
+}
+[data-theme="dark"]{
+  --bg:#0d0f12;
+  --surface:rgba(255,255,255,.045);
+  --card:#15181c;
+  --card-hi:#1c2026;
+  --text:#f1f3f5;
+  --text-2:#a6acb6;
+  --muted:#6d747f;
+  --line:rgba(255,255,255,.09);
+  --line-strong:rgba(255,255,255,.18);
+  --accent:#f1f3f5;
+  --accent-soft:rgba(255,255,255,.08);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 18px 40px -24px rgba(0,0,0,.8);
+  --ambient:
+    radial-gradient(900px 600px at 12% 8%, rgba(120,140,255,.05), transparent 60%),
+    radial-gradient(800px 600px at 92% 96%, rgba(255,170,190,.045), transparent 60%);
+}
+/* 强调色：跟主页同一份写死在这里（主页是脚本写 data-accent，规则一致） */
+[data-accent="indigo"]{ --accent:#2f4fd6; --accent-soft:rgba(47,79,214,.09);
+  --ambient:radial-gradient(900px 600px at 12% 8%, rgba(96,120,255,.13), transparent 60%),radial-gradient(800px 600px at 92% 96%, rgba(160,190,255,.11), transparent 60%); }
+[data-accent="teal"]{ --accent:#0f766e; --accent-soft:rgba(15,118,110,.10);
+  --ambient:radial-gradient(900px 600px at 12% 8%, rgba(60,200,180,.12), transparent 60%),radial-gradient(800px 600px at 92% 96%, rgba(140,230,210,.11), transparent 60%); }
+[data-accent="coral"]{ --accent:#c2410c; --accent-soft:rgba(194,65,12,.10);
+  --ambient:radial-gradient(900px 600px at 12% 8%, rgba(255,150,100,.12), transparent 60%),radial-gradient(800px 600px at 92% 96%, rgba(255,190,150,.11), transparent 60%); }
+[data-accent="plum"]{ --accent:#7c3aed; --accent-soft:rgba(124,58,237,.10);
+  --ambient:radial-gradient(900px 600px at 12% 8%, rgba(160,120,255,.13), transparent 60%),radial-gradient(800px 600px at 92% 96%, rgba(210,170,255,.11), transparent 60%); }
+[data-accent="rose"]{ --accent:#be123c; --accent-soft:rgba(190,18,60,.09);
+  --ambient:radial-gradient(900px 600px at 12% 8%, rgba(255,120,160,.12), transparent 60%),radial-gradient(800px 600px at 92% 96%, rgba(255,170,190,.11), transparent 60%); }
+[data-theme="dark"][data-accent="indigo"]{ --accent:#8fa8ff; --accent-soft:rgba(143,168,255,.16); }
+[data-theme="dark"][data-accent="teal"]  { --accent:#5eead4; --accent-soft:rgba(94,234,212,.15); }
+[data-theme="dark"][data-accent="coral"] { --accent:#fd9b6b; --accent-soft:rgba(253,155,107,.15); }
+[data-theme="dark"][data-accent="plum"]  { --accent:#c4a6ff; --accent-soft:rgba(196,166,255,.16); }
+[data-theme="dark"][data-accent="rose"]  { --accent:#ff9db1; --accent-soft:rgba(255,157,177,.15); }
+/* 自定义背景图（跟主页一样：图 + 压暗层一起走 --ambient） */
+body[data-bg="image"]{ --ambient: var(--bgimg); }
+[data-theme="dark"] body[data-bg="image"]{
+  --ambient: linear-gradient(rgba(13,15,18,.62), rgba(13,15,18,.62)), var(--bgimg);
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  min-height:100vh;
+  background:var(--bg);color:var(--text);
+  font-family:var(--sans);font-size:15px;line-height:1.75;
+  -webkit-font-smoothing:antialiased;letter-spacing:-.01em;
+  transition:background .4s ease,color .4s ease;
+}
+/* 环境光：跟主页同一套（fixed + 两团圆渐变，按 viewport 定位） */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:var(--ambient);
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+}
+a{color:inherit;text-decoration:none;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+code{font-family:var(--mono);font-size:.88em;background:var(--accent-soft);border-radius:6px;padding:1px 6px;}
+kbd{
+  display:inline-block;min-width:22px;text-align:center;
+  padding:2px 7px;border-radius:6px;border:1px solid var(--line);
+  border-bottom-width:2px;background:var(--card);
+  font-family:var(--mono);font-size:11px;color:var(--text);
+}
+
+/* ---------- 骨架：左边目录 + 右边正文 ---------- */
+.wrap{
+  max-width:1160px;margin:0 auto;padding:34px 28px 90px;
+  display:grid;grid-template-columns:212px minmax(0,1fr);gap:44px;align-items:start;
+}
+.topbar{
+  grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:4px;
+}
+.mark{
+  width:38px;height:38px;flex:none;border-radius:12px;display:grid;place-items:center;
+  background:var(--accent);color:var(--bg);font-size:17px;font-weight:600;letter-spacing:0;
+}
+.topbar h1{font-size:19px;font-weight:600;margin:0;line-height:1.3;}
+.topbar .sub{font-size:12px;color:var(--text-2);margin-top:2px;}
+.topbar .sp{flex:1;}
+.btn{
+  height:32px;padding:0 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--surface);font-size:12.5px;color:var(--text-2);
+  display:inline-flex;align-items:center;gap:6px;transition:all .2s;
+}
+.btn:hover{color:var(--text);border-color:var(--line-strong);}
+
+/* ---------- 目录 ---------- */
+.toc{position:sticky;top:26px;}
+.toc-t{font-size:11px;letter-spacing:.16em;color:var(--muted);margin-bottom:12px;}
+.toc a{
+  display:block;font-size:13px;color:var(--text-2);padding:5px 10px;border-radius:8px;
+  border-left:2px solid transparent;line-height:1.5;transition:all .18s;
+}
+.toc a:hover{color:var(--text);background:var(--accent-soft);}
+.toc a.on{color:var(--text);border-left-color:var(--accent);background:var(--accent-soft);}
+.toc a i{font-style:normal;color:var(--muted);font-size:11px;margin-right:7px;font-variant-numeric:tabular-nums;}
+
+/* ---------- 正文 ---------- */
+main{min-width:0;}
+section{margin-bottom:42px;scroll-margin-top:26px;}
+h2{
+  font-size:19px;font-weight:600;margin:0 0 14px;line-height:1.35;
+  display:flex;align-items:baseline;gap:10px;
+}
+h2 em{
+  font-style:normal;font-size:11px;color:var(--muted);letter-spacing:.1em;
+  font-weight:400;font-variant-numeric:tabular-nums;
+}
+h3{font-size:14.5px;font-weight:600;margin:22px 0 8px;}
+p{margin:0 0 12px;}
+ul,ol{margin:0 0 12px;padding-left:22px;}
+li{margin:4px 0;}
+li::marker{color:var(--muted);}
+strong{font-weight:600;}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:16px 18px;box-shadow:var(--shadow);margin:0 0 14px;
+}
+.card>*:last-child{margin-bottom:0;}
+.tip{
+  border-left:3px solid var(--accent);background:var(--accent-soft);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;padding:11px 15px;margin:0 0 14px;font-size:14px;
+}
+.tip.warn{border-left-style:dashed;}
+.tip b{font-weight:600;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mini{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:12px 14px;font-size:13.5px;color:var(--text-2);
+}
+.mini b{display:block;color:var(--text);font-size:13.5px;font-weight:600;margin-bottom:3px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 14px;}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+th{font-size:11.5px;letter-spacing:.06em;color:var(--muted);font-weight:400;}
+tr:last-child td{border-bottom:0;}
+td:first-child{white-space:nowrap;color:var(--text);}
+.q{color:var(--text-2);font-size:13.5px;}
+.foot{
+  grid-column:1/-1;margin-top:22px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;
+}
+
+/* ---------- 手机上：目录收到最前，正文单列 ---------- */
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr;gap:22px;padding:22px 18px 70px;}
+  .toc{position:static;display:flex;flex-wrap:wrap;gap:6px;}
+  .toc-t{width:100%;margin-bottom:4px;}
+  .toc a{border-left:0;border:1px solid var(--line);padding:5px 10px;border-radius:999px;font-size:12px;}
+  .toc a i{display:none;}
+  .toc a.on{border-color:var(--accent);}
+  .grid2{grid-template-columns:1fr;}
+  /* 手机上的吸顶条要跟主页一样把环境光画一遍，否则上下边缘切硬边 */
+  .topbar{
+    position:sticky;top:0;z-index:30;margin:0 -18px 14px;padding:12px 18px 14px;
+    background-color:var(--bg);background-image:var(--ambient);
+    background-attachment:fixed;background-size:cover;background-position:center;background-repeat:no-repeat;
+    /* 底边那条 1px 分隔线必须去掉：桌面端它是「页头和正文之间的分隔」，看着就是故意的；
+       手机上一旦吸顶，它就在条的下边缘切出一条 20 级的横线，
+       正是 R14 那个「多出来一块背景」的观感 —— 条的底色已经跟页面一模一样，不需要再划线了。 */
+    border-bottom:0;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="mark" id="markBox">N</div>
+    <div>
+      <h1>使用手册</h1>
+      <div class="sub">个人导航首页 · 从「怎么加一个链接」到「怎么放到域名上给访客用」</div>
+    </div>
+    <div class="sp"></div>
+    <a class="btn" href="./index.html">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+      回到首页
+    </a>
+    <button class="btn" id="themeBtn" title="切换浅色 / 深色">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <span id="themeLabel">深色</span>
+    </button>
+  </div>
+
+  <nav class="toc" id="toc">
+    <div class="toc-t">目录</div>
+    <a href="#s1"><i>01</i>30 秒上手</a>
+    <a href="#s2"><i>02</i>界面长什么样</a>
+    <a href="#s3"><i>03</i>链接：加 / 改 / 挪</a>
+    <a href="#s4"><i>04</i>分类：分组与隐藏</a>
+    <a href="#s5"><i>05</i>三种模式</a>
+    <a href="#s6"><i>06</i>搜索与筛选</a>
+    <a href="#s7"><i>07</i>右栏的几块</a>
+    <a href="#s8"><i>08</i>批量整理三件套</a>
+    <a href="#s9"><i>09</i>外观</a>
+    <a href="#s10"><i>10</i>备份 · 恢复 · 快照</a>
+    <a href="#s11"><i>11</i>云同步</a>
+    <a href="#s12"><i>12</i>快捷键</a>
+    <a href="#s13"><i>13</i>放到域名上（多用户）</a>
+    <a href="#s14"><i>14</i>数据存哪 / 常见问题</a>
+    <a href="#s15"><i>15</i>分享页 · 时光轨迹</a>
+    <a href="#s16"><i>16</i>底部标签栏（首页 / 导航 / 分享 / 文章）</a>
+    <a href="#s17"><i>17</i>首页能放什么</a>
+    <a href="#s18"><i>18</i>文章页 · 用 Markdown 写长文</a>
+  </nav>
+
+  <main>
+
+    <!-- ============ 01 ============ -->
+    <section id="s1">
+      <h2><em>01</em>30 秒上手</h2>
+      <p>这个页面的核心就一句话：<strong>链接是你的，数据存在你自己的浏览器里</strong>。没有账号、没有服务器，打开就能用。</p>
+      <div class="card">
+        <ol style="margin-bottom:0;">
+          <li>第一次打开会带一批演示链接，随便改随便删。</li>
+          <li>中间那行工具条上点 <strong>＋ 添加</strong>（在列表最前面），或者直接在链接区最左上那颗加号里填名字 + 网址。</li>
+          <li>整理的时候点工具条上的 <strong>编辑</strong> 进编辑模式：单击勾选、双击就地改名、按住拖动排序。</li>
+          <li>数据想带走或换电脑用：右栏底部 <strong>备份 / 恢复</strong> → 导出 JSON。</li>
+        </ol>
+      </div>
+      <div class="tip">
+        <b>一个小习惯建议：</b>先把分类建好（比如「工作 / 设计 / 学习」），再往里丢链接 —— 比先塞几百条再回头分省事得多。
+      </div>
+    </section>
+
+    <!-- ============ 02 ============ -->
+    <section id="s2">
+      <h2><em>02</em>界面长什么样</h2>
+      <p>电脑上是铺满一屏的三栏；手机上自动收成单列，搜索条吸在顶部。<strong>屏幕底部正中还浮着一条标签栏</strong>（首页 / 导航 / 分享，还能自己加），三个页面就靠它切换（见 <a href="#s16">16 底部标签栏</a>）。</p>
+      <div class="grid2">
+        <div class="mini"><b>左栏 · 门头</b>标志（点图标改资料、点主标题打开链接）、分类导航（可以搬到这里竖排）、时钟与日期，最后一句<strong>可以点开改</strong>的问候语。</div>
+        <div class="mini"><b>中栏 · 主战场</b>搜索条、模式标签页（分类 / 全部 / 盲盒）、工具按钮、链接列表。</div>
+        <div class="mini"><b>右栏 · 顺手用的</b>最常访问、待办、<strong>本地音乐</strong>（一个能放歌的小盒子，歌都在自己电脑上），最底下一句<strong>可以点开改</strong>的文案，再配一排按钮（备份 / 外观 / 云同步 / 主题 / 快捷键 / 使用手册 / 分享页）——<strong>七颗长得一模一样</strong>，都是一颗带图标的胶囊。最后两颗是「去别处看看」：<strong>使用手册</strong>是就地打开这份手册（不会跳走再新开一页），<strong>分享页</strong>是切到「时光轨迹」那一整页（见 <a href="#s15">15 分享页</a>）。按钮下面还有一小块快捷键提示。</div>
+        <div class="mini"><b>手机上</b>只剩中栏最重要的一条：吸顶搜索条 + 分类横滑 + 链接列表。<strong>门头（标志 + 主标题 + 副标题）搬到中栏最上面</strong>，时钟、日期和问候语挪到它<strong>右边</strong>（左边门头、右边时间，两栏占满整行，不浪费右半边的空白），右栏挪到列表之后；快捷键提示在手机上是收起来的（手机没有 <kbd>⌘K</kbd> 和 <kbd>Esc</kbd>）。</div>
+      </div>
+      <h3>分类栏可以换地方</h3>
+      <p>工具条上那颗 <strong>位置</strong>：切到「左边」时分类会搬到左栏竖着排（两列小方块），适合分类多的人；切到「上边」时它横排在中栏顶部，适合分类少的人。这个选择会记住。</p>
+    </section>
+
+    <!-- ============ 03 ============ -->
+    <section id="s3">
+      <h2><em>03</em>链接：加 / 改 / 挪</h2>
+      <h3>加一条</h3>
+      <ul>
+        <li>列表最前面那颗 <strong>＋ 添加</strong>：填名字、网址、分类、标签（可选）。</li>
+        <li>网址不写 <code>https://</code> 也行，会自动补上。</li>
+        <li><strong>一长串直接粘进去</strong>：从别处复制来的「标题 + 网址」（比如 <code>某某站点 https://example.com</code>）粘到<strong>名字</strong>或<strong>网址</strong>任意一格里，它会自己拆成两个字段。拆得出来才动手 —— 只认<strong>恰好一个</strong>网址（粘一堆网址它不碰），而且<strong>另一格已经有内容就不覆盖</strong>，右下角会告诉你「没动它」。</li>
+        <li>一次加很多条？用 <a href="#s8">导入</a>，不要一条条点。</li>
+      </ul>
+      <h3>改一条</h3>
+      <p>先在工具条上点 <strong>编辑</strong> 进编辑模式，然后：</p>
+      <ul>
+        <li><strong>单击</strong>链接 = 勾选 / 取消勾选（不跳转，方便批量）。</li>
+        <li><strong>双击</strong>链接 = 就地改名字、网址、分类、标签。改完回车即存，<kbd>Esc</kbd> 取消。</li>
+        <li>不在编辑模式时，<strong>单击</strong>就是打开链接（并且记一次访问，喂给「最常访问」）。</li>
+      </ul>
+      <h3>右键：一次能干的六件事</h3>
+      <p>在<strong>一条链接</strong>上点右键：</p>
+      <table>
+        <tr><td>打开 / 新标签打开</td><td>跟单击一样，顺手一个入口</td></tr>
+        <tr><td>复制网址</td><td>复制不到时会退成「摊开让你手抄」，不会静默失败</td></tr>
+        <tr><td>置顶到分类最前</td><td>被置顶的链接永远排在这个分类最上面（手动排序时）</td></tr>
+        <tr><td>编辑</td><td>等于双击</td></tr>
+        <tr><td>移到别的分类</td><td>弹一个分类列表，点一下就搬走</td></tr>
+        <tr><td>删除</td><td>会先弹一个确认框，点「确定」才删；删完右下角还会冒一个「撤销」，几秒内能反悔</td></tr>
+      </table>
+      <p>右键不只认链接 —— <strong>分类</strong>和<strong>固定栏上的胶囊</strong>也各自有自己的菜单，见下面两小节。</p>
+      <h3>删除 / 清空：一律先问一声</h3>
+      <p>凡是<strong>做完就回不去</strong>的动作，都会先弹一个确认框，告诉你「要没掉什么、怎么退回来」，点<strong>确定</strong>才真的动手。点<strong>取消</strong>、点框外的阴影、按 <kbd>Esc</kbd>，都是取消。</p>
+      <ul>
+        <li>要确认的：删链接、批量删除、删分类（连同子分类）、清空分类、清待办（含「清除已完成」）、删快照、恢复快照、导入备份、从云端拉回、清空全部数据、<strong>从歌单里移掉一首歌</strong>。</li>
+        <li>顺手给一次<strong>撤销</strong>的：删单条链接、从固定栏拿掉、闲置链接搬去归档。</li>
+        <li>不算删除、所以按钮不是红的：闲置归档（只是搬家，随时能搬回来）。</li>
+      </ul>
+      <div class="tip">
+        <b>确认框的确定键默认是红色的</b>（危险色）。看到红的，说明这一步删了就真没了；看到主色的，说明只是挪个地方。
+        另外，确认框是叠在别的弹窗上面的 —— 比如你在「分类管理」里点删除，确认框会浮在那个面板之上，取消之后分类管理还开着，不用重新打开一遍。
+      </div>
+      <div class="tip warn">
+        <b>确认框开着的时候，单键快捷键不生效。</b>不然你在确认「删不删」的时候随手按一下 <kbd>R</kbd>，背后的盲盒就抽出来了。
+      </div>
+      <h3>挪一条</h3>
+      <ul>
+        <li><strong>上下拖</strong> = 在同一个分类里排序（只在「手动排序 + 当前分类没有子分类」时生效，这是为了保护数据，见下）。</li>
+        <li><strong>拖到左边的某个分类上松手</strong> = 把这条链接搬进那个分类。拖的时候目标分类会高亮成靶心。</li>
+      </ul>
+      <div class="tip">
+        <b>为什么拖动有时候「不动」：</b>当这个分类下面还有子分类（比如「设计」下面有「设计/配色」）时，排序会被挡住 ——
+        因为列表里混着子分类的链接，按屏幕顺序写回去会把它们倒进父分类里。<strong>分类模式</strong>下更彻底一点：
+        中栏里混着<strong>所有</strong>分类的链接，所以那儿一律不给排序（否则一拖就把别家的链接倒进来），
+        只留「拖到某个分类上松手 = 搬过去」这一条。想排序就先切到别的模式，或者把子分类收走。
+      </div>
+    </section>
+
+    <!-- ============ 04 ============ -->
+    <section id="s4">
+      <h2><em>04</em>分类：分组与隐藏</h2>
+      <h3>建分类</h3>
+      <ul>
+        <li>左栏分类标题右边那颗 <strong>＋</strong>；</li>
+        <li>或者工具条 <strong>分类</strong> → 分类管理里新建 / 重命名 / 清空。</li>
+      </ul>
+      <h3>用「/」做层级，不用另建结构</h3>
+      <p>分类名里带斜杠就是一层：写 <code>设计/配色</code>、<code>设计/字体</code>，页面上会自动出现一个「设计」分组，下面挂两个子分类。</p>
+      <div class="card">
+        <code>设计</code> · <code>设计/配色</code> · <code>设计/字体</code> · <code>工作/周报</code>
+      </div>
+      <h3>就地改名</h3>
+      <p>双击分类名字直接改（回车提交，<kbd>Esc</kbd> 取消）。改父级的名字时，它下面的子分类会跟着一起搬，不会断掉。</p>
+      <h3>一口气全部收起 / 全部展开</h3>
+      <p>分类栏标题右边（<strong>＋</strong> 的左边）那颗上下箭头：一下把所有分组<strong>折叠</strong>起来，再点一下全部<strong>展开</strong> —— 连「最近添加」那棵树也一起算进去。箭头<strong>朝哪边，就是点下去的后果</strong>，鼠标停上去还会告诉你「全部折叠 / 全部展开」。哪些组是收着的会记住，下次打开还在。</p>
+      <h3>分类后面的条数：默认不显示</h3>
+      <p>每个分类名后面那个小数字，是<strong>这个分类里有多少条链接</strong>（连子分类一起数）。它<strong>默认不显示</strong>，想让它在哪就在这儿开：工具条 <strong>分类</strong> → 分类管理弹窗最下面那组 <strong>「显示 / 不显示」</strong> —— 两颗小按钮，点哪颗就是哪个状态，<strong>选中的那颗是实心填充</strong>（跟弹窗右下角那颗「完成」同一个颜色，深色主题下自动跟着变浅）—— 一眼看得出来现在是开还是关。开着还是关着会记住，下次打开还是你选的那个。</p>
+      <p>它是<strong>你自己的偏好，跟分类栏摆哪儿没关系</strong> —— 分类栏挪到顶上、或者换成手机上那条横滑排，都照样听这个开关的。</p>
+      <h3>在一个分类上点右键</h3>
+      <p>分类也认右键，菜单里是这七件事：</p>
+      <table>
+        <tr><td>打开这个分类</td><td>等于点它一下</td></tr>
+        <tr><td>置顶这个分类</td><td>把它挪到<strong>同一层的最前面</strong>，再点一次就取消置顶。置顶过的名字后面会多一颗小圆点。置顶一个父分类时，它的子分类会跟着一起上去（不然孩子会被落在原地，看着像迷路了）</td></tr>
+        <tr><td>重命名</td><td>等于双击，就地改</td></tr>
+        <tr><td>新建子分类</td><td>直接打开新建框，名字已经替你写好「父分类/」，接着打后半截就行</td></tr>
+        <tr><td>隐藏 / 让它重新出现</td><td>整个分类（连同子分类）从所有地方收起来，随时能放回来</td></tr>
+        <tr><td>清空里面的链接</td><td>分类留着，里面的链接清掉 —— 会先问一声，也会先自动存一份快照</td></tr>
+        <tr><td>删除这个分类</td><td>连里面的链接和子分类一起删 —— 同样会先问一声、先存快照</td></tr>
+      </table>
+      <div class="tip">
+        <b>「最近添加」和它下面那几档时间（今天 / 昨天 / 更早）不给右键菜单。</b>它们不是真的分类，删了改都没地方落，所以在那儿点右键什么都不会发生（浏览器原本的菜单也不拦）。
+      </div>
+      <h3>两个特殊分类</h3>
+      <ul>
+        <li><strong>最近添加</strong>：按添加时间倒序，自动分「今天 / 昨天 / 更早」。它不落库、也不能拖。</li>
+        <li><strong>时间树</strong>：可以按时间维度看，同样自动分组。</li>
+      </ul>
+      <h3>把分类藏起来</h3>
+      <p>在分类上<strong>点右键 → 隐藏这个分类</strong>，它就和它下面的子分类一起从所有地方消失：列表、搜索、快速查找、体检、统计里都看不到。<strong>数据一条不丢</strong>，只是不再露面。</p>
+      <p>想放回来：左栏分类树底下会出现一行「🔒 已隐藏 N 个分类 · 点这里管理」，点进分类管理里按「显示」就行；再在那个分类上点一次右键，菜单里那条也会变成<strong>「让它重新出现」</strong>。</p>
+      <div class="tip warn">
+        <b>别担心点不回来。</b>就算把带子分类的父节点整个藏了，那一行提示也一直留着 —— 藏得再多也有回去的路。
+      </div>
+    </section>
+
+    <!-- ============ 05 ============ -->
+    <section id="s5">
+      <h2><em>05</em>三种模式</h2>
+      <p>工具条最左边那三个标签页：<strong>分类</strong> / <strong>全部</strong> / <strong>盲盒</strong>。选哪个会记住，下次打开还停在那儿。</p>
+      <div class="grid2">
+        <div class="mini"><b>分类</b>按左栏顺序把<strong>所有</strong>分类连成一长条铺出来（每段一行分类名），最日常的模式 —— 想细看哪一类，左栏点一下，它自己滑过去。</div>
+        <div class="mini"><b>全部</b>三千条一口气摊开（分批渲染，不卡），配合筛选框当「全站搜索」用。</div>
+        <div class="mini"><b>盲盒</b>列表一条都不显示，台上只有一个礼物盒 + 一颗「抽一个」，抽到哪条开哪条。</div>
+        <div class="mini"><b>盲盒的隐藏用法</b>先用筛选框把池子缩小（比如「只看设计」），再抽 —— 抽签范围就跟着小了。盒子下面那行字会实时告诉你「筛完还剩几条、原本几条」。</div>
+        <div class="mini"><b>固定链接栏</b>三个标签页<strong>右边</strong>可以钉最多 5 个链接，点一下就开 —— <strong>三种模式都显示</strong>，常去的那几个地方在哪儿都伸手够得到。点那颗 <strong>＋</strong> 从链接库里挑，钉满 5 个 ＋ 就自己收起来。在胶囊上<strong>点右键</strong>会出一个菜单：<strong>打开 / 改个名字 / 改链接 / 取消固定</strong>（改名字和改链接都是就地改，回车即存；取消固定带撤销）。一条都没钉的时候那里只剩一颗虚线 ＋，那就是入口。</div>
+        <div class="mini"><b>场景（工作 / 生活…）</b>筛选行上那颗 <strong>场景</strong>（在「排序」「标签」旁边）：把<strong>固定栏那一排</strong>和<strong>当前停在哪个分类</strong>存成一套，换场景时两样一起换过来。点它（或者在同一颗上点右键）出菜单：上面一行一个场景（右边标着「分类 · 几条」），下面是 <strong>更新成当前 / 新建场景… / 重命名… / 先不用场景 / 删除</strong>。切走时会把你刚调好的那套自动记回原来的场景，所以来回切不会丢东西。<strong>主题、强调色、隐藏分类这些不跟着场景走</strong> —— 那是「你是谁」，不是「你现在在干嘛」。没启用场景时按钮上就写着「场景」两个字。</div>
+      </div>
+      <h3>分类模式下：所有分类连成一长条</h3>
+      <ul>
+        <li><strong>铺开</strong>：中栏不再是「当前这一个分类」，而是从第一个分类到最后一个依次排开 —— 每个分类先一行分类名（右边标着这个分类能看见几条），下面紧接着它的链接。空分类（自己没链接、只当文件夹用的）不占位置。</li>
+        <li><strong>点左栏 = 滑过去</strong>：左栏点哪个分类，中栏就顺滑地滚到它那一段，那行分类名还会闪一下。不是「换一屏」，是「带你到那儿」。</li>
+        <li><strong>滚轮也会带着左栏走</strong>：你往下滚，左栏的高亮跟着换成当前这一段 —— 滚到哪一类，左栏就亮哪一类；滚到最底下时自动认最后一个分类。</li>
+        <li><strong>「最近添加」不跟着铺</strong>：它是按时间算出来的视图，不是真分类；点它还是自己一屏（今天 / 昨天 / 更早）。从它切回普通分类，铺开的那一长条会原样装回来。</li>
+        <li><strong>筛选的范围也跟着变了</strong>：分类模式下的筛选框现在是「在所有分类里筛」（以前是「在当前分类里筛」），输入框里的提示语会跟着变。筛到只剩一两个分类时，别的段会连着抬头一起消失。</li>
+        <li><strong>排序只改你正看着的那一段</strong>：铺开时每个分类各记各的排序方式，工具条那颗「排序」改的是左栏高亮的那一个分类（鼠标停在按钮上会告诉你）。</li>
+      </ul>
+      <div class="tip">
+        盲盒模式下按 <kbd>R</kbd> 就是「抽一个」；抽出来的那条，按 <kbd>Enter</kbd> 直接打开。
+      </div>
+    </section>
+
+    <!-- ============ 06 ============ -->
+    <section id="s6">
+      <h2><em>06</em>搜索与筛选</h2>
+      <h3>搜索框（顶上那一条）</h3>
+      <table>
+        <tr><td>直接输网址</td><td>比如 <code>github.com</code>，回车直接开，不走搜索引擎</td></tr>
+        <tr><td>输关键词</td><td>用当前选中的那颗引擎搜</td></tr>
+        <tr><td>引擎名 + 空格 + 关键词</td><td>比如 <code>github 导航</code>，就用 GitHub 搜「导航」，不用先切引擎</td></tr>
+        <tr><td>换引擎</td><td>搜索框右边那排胶囊，点一下就切；也能自己加（在引擎设置里）</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>在<strong>新标签页</strong>打开，不覆盖当前页面</td></tr>
+      </table>
+      <h3>快速查找（<kbd>⌘</kbd><kbd>K</kbd> / <kbd>Ctrl</kbd><kbd>K</kbd>）</h3>
+      <p>这是「在你自己那几千条链接里找」，跟上面的搜索框不是一回事。名字、拼音首字母、网址、标签都能搜，命中分类还能直接跳过去。</p>
+      <h3>筛选框（列表上方那一条）</h3>
+      <p>三种模式下都在工作。分类模式下中栏是<strong>所有分类连起来的长条</strong>，所以筛选是「在<strong>所有分类</strong>里筛」（筛到只剩一两个分类时，别的段连着抬头一起消失）；停在「最近添加」那一支时是「在<strong>最近添加</strong>里筛」；全部 / 盲盒模式下是「在<strong>全部链接</strong>里筛」。输入框里的占位提示会跟着模式变，一眼能看出在筛哪儿。</p>
+      <p>框里一有字，<strong>输入框右边缘就会冒出一颗 ✕</strong>，点一下把筛选清掉、列表<strong>当场</strong>恢复（不用等那半秒的防抖），光标还留在框里，接着打字就行。顶上那个搜索框也有同样的一颗 ✕。</p>
+      <p>盲盒模式下你没有列表可看，所以那个框到底在筛什么，页面会主动告诉你：<strong>输入框右边会多出一颗小胶囊</strong>，一开始写着「这个框先把池子筛小，再抽」，你一打关键词它就变成「已筛出 N 条，再点『抽一个』」；下面那行字也会跟着报「关键词「×」筛过之后，池子里还剩 N 条（原本 M 条）」。<strong>它不是摆设，它就是抽签范围。</strong></p>
+      <p>旁边的 <strong>排序</strong>（手动 / 最常点 / 按名字）和 <strong>标签</strong>（按标签挑）也一样跟着当前视角走。想随机抽一条看，用工具条里那颗 <strong>随机</strong>（快捷键 <kbd>R</kbd>）—— 它和「抽一个」是同一个动作，只在盲盒模式里换个位置。</p>
+    </section>
+
+    <!-- ============ 07 ============ -->
+    <section id="s7">
+      <h2><em>07</em>右栏的几块</h2>
+      <h3>最常访问</h3>
+      <p>按点击次数自动排的。你不点链接它就不会长东西；点得多的自己往上走，不用手动维护。（排到第几位看左边的序号就行 —— 行尾以前那个点击次数已经去掉了，它只是拿来排序用的，画出来反而让人不知道那是什么数。）</p>
+      <ul>
+        <li>右上 <strong>＋</strong> 可以手动加一条常用（比如天天要开的后台）。</li>
+        <li><strong>按住某一行直接上下拖</strong>，就能自己定顺序。拖过之后顺序就固定住了 —— 以后某个站点的点击数再怎么涨，也不会把排好的顺序冲乱。（拖动全程不会把文字选成一片蓝底：一按下就禁止选字，松手自动恢复。）</li>
+        <li>行尾那颗小图钉是<strong>置顶 / 取消置顶</strong>，鼠标划过才出现。已经拖过顺序时，新置顶的会插到最前面。</li>
+        <li>右上角的箭头可以<strong>展开 / 收起</strong>，收起状态会记住。</li>
+      </ul>
+      <h3>待办</h3>
+      <p>就是个极简清单：输一句回车就加一条，勾掉就是完成，右上「清除已完成」一次清干净。放在导航页上，是为了「打开浏览器第一眼就看见」。</p>
+      <h3>本地音乐</h3>
+      <p>待办下面那个小盒子，纯粹给「一边整理链接一边听点东西」用的。<strong>歌都在你自己电脑上</strong>，不上传、不联网，断网也照放。</p>
+      <ul>
+        <li><strong>加歌</strong>：点卡片右上角的 <strong>＋</strong> 选几首（<code>mp3 / m4a / aac / flac / wav / ogg</code> 这些常见格式都认）；或者<strong>直接把文件拖进卡片</strong>。一次选几首就一起进去。</li>
+        <li><strong>放</strong>：中间那颗实心圆按钮是播放 / 暂停，两边是上一首 / 下一首。最右边那颗换<strong>循环方式</strong>，点一下跳一种：<strong>顺序播放</strong>（放完最后一首就停）→ <strong>单曲循环</strong>（这首反复放）→ <strong>随机播放</strong>（下一首瞎挑一首）。当前是哪种，图标上写着。</li>
+        <li><strong>拖进度</strong>：上面那根细条就是进度，点哪跳哪，也能拖着走（鼠标划过卡片才现出那颗小圆点）。左下 / 右下写着「已放多久 / 总共多长」。最右边那颗是静音，旁边的小条调音量。</li>
+        <li><strong>歌单</strong>：点卡片右上角的歌单图标展开 —— 所有歌都在，正在放的那首会高亮，也能一首首删。加过歌之后卡片上会显示歌名。</li>
+        <li><strong>存哪了</strong>：歌本身存在浏览器的数据库里（IndexedDB，因为 localStorage 太小放不下音频），<strong>刷新、关掉再开都还在</strong>。但<strong>换个浏览器、换台电脑、清了浏览器数据就没了</strong> —— 跟链接是一个道理，别把它当网盘。</li>
+        <li><strong>删歌只删这儿</strong>：移掉一首歌，或者「清掉整个歌单」，动的都只是页面里这份列表，<strong>你原来硬盘上的文件一个都没碰</strong>。</li>
+        <li><strong>不进备份</strong>：<strong>歌单和歌本身都不进备份文件，也不进快照</strong>（几百 MB 的音频塞进 JSON 会当场卡死），备份里只带音量、循环方式这几个小偏好。所以别拿备份当歌的保险柜 —— 歌的保险柜是你自己的硬盘。</li>
+      </ul>
+      <h3>最底下的那句话</h3>
+      <p>右栏最底下躺着一句淡淡的文案（默认「先完成，再完美。」），<strong>点它就能改</strong>：可以只留一句放着不动，也可以写好几句，让它按天换或者按小时轮播。它和下面那排按钮是一小撮，永远贴在右栏最底部。</p>
+    </section>
+
+    <!-- ============ 08 ============ -->
+    <section id="s8">
+      <h2><em>08</em>批量整理三件套</h2>
+      <h3>一、导入（工具条的「导入」）</h3>
+      <p>两种东西都能喂进去：</p>
+      <ul>
+        <li><strong>纯文本</strong>：一行一条，<code>名字 网址</code> 或直接一个网址，分个类再导入。</li>
+        <li><strong>浏览器书签文件</strong>：Chrome / Edge / Safari 里「导出书签」得到的 <code>.html</code> 文件，拖进来即可，文件夹层级会变成分类。</li>
+      </ul>
+      <h3>二、链接体检（工具条的「体检」）</h3>
+      <p>四个标签页挨个过一遍：</p>
+      <ul>
+        <li><strong>重复</strong>：同一个网址被加了两次（自动归组，可一键去重）。</li>
+        <li><strong>闲置</strong>：很久没点过的死链，看着删；也可以一键<strong>搬去「归档」分类</strong>（只是搬家、按钮不是红的，右下角还给一次撤销，随时能搬回来）。</li>
+        <li><strong>整理</strong>：两类「该收拾一下」的 —— <strong>空分类</strong>（一条链接都没有的）和<strong>名字没起好的</strong>（空的 / 名字直接就是网址或域名 / 超过 16 个字）。空分类能一条条留或删，也能<strong>一次全藏起来</strong>；名字那栏点「改」，会直接跳进正常的编辑框，并且<strong>替你预填一个短名字</strong>，你看着顺眼点保存就行。</li>
+        <li><strong>探活</strong>：真去请求一遍，把打不开的挑出来。</li>
+      </ul>
+      <div class="tip">
+        <b>「整理」判空分类，算的是<strong>它自己加上下面所有子分类</strong>的条数。</b>所以一个只用来分组的父分类（自己一条没放、孩子里有几条）不会被当成空的 —— 不然一删连孩子一起没了。
+        另外这一栏<strong>故意不跳过已经藏起来的分类</strong>：在分类管理里看得见、在体检里却看不见，那才叫奇怪。
+      </div>
+      <h3>三、导出为浏览器书签</h3>
+      <p><strong>备份 / 恢复</strong> 弹窗里那颗「导出为浏览器书签（.html）」—— 把你所有的分类和链接还原成一个书签文件，可以导进任何浏览器。想「上岸」的时候用这个。</p>
+      <h3>四、管理台（标签栏的「管理」）</h3>
+      <p>管理台的左边是一条<strong>通到底的侧栏</strong>：上面是站名，中间是「页面」（导航链接 / 首页 / 分享页），下面「工具」那一组就是平时散在各处的入口 —— 添加链接、导入、体检、分类、备份 / 恢复、云同步、写一条、首页、固定链接，一处就能点开，不用再跑回导航页。</p>
+      <p>点开之后它<strong>不弹窗</strong>：面板贴在右边，表格还留在左边 —— 改一条、看一眼，接着改下一条，不用在两个窗口之间来回跳。<kbd>Esc</kbd> 先收面板，再按一次才回导航页。手机上这条面板就是一整屏。</p>
+      <p>批量整理还有一张<strong>表格</strong>：点标签栏最右边那颗「管理」，就能看到<strong>所有分类的全部链接</strong> —— 分类、名称、网址、点过几次、最后一次打开是什么时候、标签、有没有置顶（屏幕够宽时还会多一列「添加时间」）。链接多的时候表格按页翻，右下角可以选<strong>每页 50 / 100 / 500 / 全部</strong>。</p>
+      <ul>
+        <li><strong>筛</strong>：上面那排能按分类、按状态筛（从未点击 / 30 天没打开 / 已置顶 / 重复网址 / 没标签），也能直接搜名字、网址、标签。</li>
+        <li><strong>勾</strong>：点任意一行就勾上，表头那个方框是「全选当前筛选结果」。</li>
+        <li><strong>批量改</strong>：勾完在顶上那一条里点「移动到…」「置顶」「取消置顶」「删除」。删除照样先问你一句，删前自动存一份快照。</li>
+        <li><strong>就地改</strong>：双击名字直接改，回车保存，<kbd>Esc</kbd> 放弃。</li>
+        <li><strong>一条也不用先勾选</strong>：鼠标移到某一行，右边会冒出来四颗小按钮 —— <strong>编辑 / 置顶 / 打开 / 删除</strong>；点<strong>网址本身</strong>就复制，复制完右下角会提示。</li>
+        <li><strong>导出 CSV</strong>：把当前筛选结果导成表格文件，Excel / Numbers 都能打开。</li>
+      </ul>
+      <h3>五、管理员：谁能改，谁只能看</h3>
+      <p>导航页默认是<strong>只读</strong>的：任何人都能打开链接、复制网址、搜索筛选、换主题，但<strong>加、改、删、导入、恢复</strong>都会先弹一个密码框。第一次点「编辑」时会让你<strong>设一个管理员密码</strong>（至少 4 位）。</p>
+      <ul>
+        <li><strong>解锁</strong>：点任意一个编辑入口 → 输密码；也可以在管理台右上角点「管理员登录」。</li>
+        <li><strong>锁定</strong>：管理台右上角点「锁定」，或者直接关掉浏览器 —— 解锁只在这一个会话里有效，重开就要重输。</li>
+        <li><strong>不用密码就能做的</strong>：打开链接、右键<strong>复制网址</strong>、搜索、按分类 / 标签筛、切主题和密度、导出备份和 CSV。</li>
+      </ul>
+      <div class="tip">
+        <b>这道门只是「防手滑」，不是安全边界。</b>这是一个纯静态的单文件页面，没有服务器 —— 懂技术的人清掉浏览器数据或改一下源码就能绕过，谁拿到这个文件都能看里面的链接。
+        真要做到「别人打不开、改不了」，得把页面放到服务器上，用登录 / 密码 / 访问控制来做。<br>
+        另外密码<strong>只存在这台电脑的浏览器里</strong>（存的是加盐哈希，不是明文），不写进备份、不写进分享页。忘记密码无法找回 —— 清浏览器数据会把链接一起清掉，所以请先用「备份 / 恢复」导出一份。
+      </div>
+      <h3>六、发布到虚拟主机（让访客看到你的内容）</h3>
+      <p>你在管理台里改的东西，<strong>只存在这台电脑的浏览器里</strong>。要让别人打开网址就看到这些内容，得「导出发布版」再上传：</p>
+      <ol>
+        <li>管理台右上角点 <strong>「导出发布版」</strong> → 浏览器下载一个 <code>index.html</code>（数据已经烘焙进文件，所以会比空壳大）。</li>
+        <li>把这份 <code>index.html</code> 传到你虚拟主机的网站根目录，覆盖原来那个。</li>
+        <li>打开网址验收：首页 / 导航 / 分享三个页面都应该显示你刚才的内容；底部<strong>没有「管理」</strong>，工具条上<strong>没有「编辑 / 导入 / 体检」</strong>。</li>
+      </ol>
+      <div class="tip">
+        <b>发布版是一张快照，不是实时同步。</b>以后每次改完都要再导出、再上传一次。<br>
+        线上那份是<strong>只读</strong>的：没有后台入口，编辑和保存都被拦住，访客只能浏览和复制网址。<br>
+        但文件本身谁都能下载查看 —— 里面的链接是公开的，<strong>别把私人网址放进去</strong>；真需要保密，得上服务器做登录。
+      </div>
+      <div class="tip">
+        <b>管理台不是「另一份数据」</b> —— 它就是同一批链接换了个看的角度，改完立刻生效；点右上角「返回导航」或按 <kbd>Esc</kbd> 回到导航页，看到的就是改过的样子。
+        它<strong>不参与左右拖动切页</strong>：那三页是「用」的地方，管理台是「管」的地方。
+        另外<strong>点击数是从「在导航页点过几次」记下来的</strong>，按网址算 —— 两个不同名字指向同一个网址，它们共用同一份点击账。
+      </div>
+    </section>
+
+    <!-- ============ 09 ============ -->
+    <section id="s9">
+      <h2><em>09</em>外观</h2>
+      <p>右栏底部 <strong>外观</strong>，五样东西：</p>
+      <table>
+        <tr><td>强调色</td><td>六套（石墨 / 靛蓝 / 青碧 / 珊瑚 / 紫罗兰 / 绯红）。选中态、按钮、高亮都跟着它。</td></tr>
+        <tr><td>背景图</td><td>贴一个图片网址就行，会自动压暗一层保证文字看得清；留空回到默认渐变。</td></tr>
+        <tr><td>列表密度</td><td><strong>紧凑 / 舒适 / 宽松</strong> 三档。链接几千条的时候切「紧凑」，一屏能多看十几条。是立刻生效的，不用点保存。</td></tr>
+        <tr><td>搜索条置顶</td><td><strong>置顶 / 不置顶</strong>，默认置顶。置顶时往下翻，搜索条粘在顶部不跟着走，随时能搜；关掉它就跟内容一起滚走，顶部更干净。同样是立刻生效的。</td></tr>
+        <tr><td>恢复默认</td><td>把上面四样一起还原</td></tr>
+      </table>
+      <p>主题（浅色 / 深色 / 跟随系统）在右栏底部那颗月亮/太阳按钮上，点一下循环切换，按钮上写的是<strong>当前状态</strong>。还有一个不在外观里但很常用的：</p>
+      <ul>
+        <li>点<strong>左上角标志的图标</strong>（或副标题），可以改图标字符、主标题、副标题，还能给主标题设一个跳转链接。手机上是点<strong>最上面那一行标志</strong>——同一个弹窗、改的是同一份资料。</li>
+        <li>设了链接之后，<strong>点主标题就是打开那个链接</strong>（新标签打开）；没设链接时点它还是打开这个编辑弹窗。主标题的颜色跟着主题色走，换主题色它也跟着换。</li>
+        <li>点<strong>右栏最底下那句话</strong>，可以改文案，也可以设成多条轮播（按天换或按小时换）。</li>
+        <li>点<strong>时钟下面那句问候语</strong>（手机上是右边那栏最下面一行），可以自己写一句；<strong>留空就按钟点自动说</strong>（早上好 / 中午好 / 晚上好…）。这句的颜色跟着主题色走，换配色它也跟着换。</li>
+      </ul>
+    </section>
+
+    <!-- ============ 10 ============ -->
+    <section id="s10">
+      <h2><em>10</em>备份 · 恢复 · 快照</h2>
+      <p>右栏底部 <strong>备份 / 恢复</strong>：</p>
+      <ul>
+        <li><strong>导出备份（JSON 文件）</strong>：链接、分类、标签、最常访问（连你拖出来的顺序）、盲盒固定栏、分类的置顶顺序、隐藏分类、待办、每日文案、问候语、<strong>场景（含各自的固定栏和默认分类）</strong>、外观偏好（含「分类后面的条数」那颗开关）、搜索引擎、主题……全都在里面。换电脑、换浏览器、重装，导入这个就全回来了。
+        <strong>只有本地音乐是个例外</strong>：备份里只带它的音量 / 循环方式这几个偏好，<strong>歌单和歌本身都不在里面</strong>（音频体积太大，塞进 JSON 会当场卡死）。</li>
+        <li><strong>导入备份（选择 JSON）</strong>：会覆盖当前数据。</li>
+        <li><strong>清空全部数据</strong>：回到刚打开时的样子。<strong>歌单也一起清掉</strong>（不然会留下一堆界面上看不见、却实实在在占着几百 MB 的音频）。</li>
+      </ul>
+      <div class="tip">
+        <b>自动快照：</b>每次「清空全部数据 / 导入备份 / 批量删除 / 删分类 / 清空分类 / 体检里的清理」之前，页面都会先悄悄存一份快照，最多留 5 份，就列在同一个弹窗下面。
+        手抖清空了？在那儿点一下就能回到操作前。这是同一条浏览器里的最后一道保险。
+        删单条链接不存快照 —— 那种情况右下角直接给「撤销」更快。
+      </div>
+    </section>
+
+    <!-- ============ 11 ============ -->
+    <section id="s11">
+      <h2><em>11</em>云同步（GitHub Gist）</h2>
+      <p>想让手机上、公司电脑上看到同一份数据，用这个。原理是把你的数据存进一个你自己的私有 Gist，换设备时拉回来。</p>
+      <h3>第一次怎么配</h3>
+      <ol>
+        <li>去 GitHub 生成一个 Token（Settings → Developer settings → Personal access tokens），权限只勾 <code>gist</code> 就够了。</li>
+        <li>打开 <strong>云同步</strong>，把 Token 粘进第一栏。Gist ID 留空。</li>
+        <li>点 <strong>上传到云端</strong>。成功后 Gist ID 和「Gist 地址」会自动填上。</li>
+        <li>换到另一台设备，粘同一个 Token，点 <strong>从云端拉回</strong>。</li>
+      </ol>
+      <h3>那三个字段默认是打码的</h3>
+      <p>Token、Gist ID、Gist 地址默认都显示成 <code>••••••</code>，防的是「有人站你背后一眼看全」。想核对内容就点状态条右边那颗 <strong>显示</strong>，三样一起露出来；再点一下又藏回去。</p>
+      <h3>状态条在说什么</h3>
+      <table>
+        <tr><td>未连接</td><td>还没填 Token，或者 Token 被清掉了</td></tr>
+        <tr><td>已连接</td><td>Token 和 Gist ID 都在，可以点上传 / 拉回</td></tr>
+        <tr><td>只在本地</td><td>Token 有了，但还没上传过 —— 这时「Gist 地址」是空的，「打开」那颗也不会出现</td></tr>
+        <tr><td>上次同步时间</td><td>直接写在状态条上，不用猜</td></tr>
+      </table>
+      <div class="tip warn">
+        <b>安全提醒：</b>Token 只存在你自己这台浏览器的 localStorage 里，不会发给任何第三方；但它等于一把钥匙，
+        别在公用电脑上填。不想要了就点 <strong>清除 Token</strong>。
+      </div>
+    </section>
+
+    <!-- ============ 12 ============ -->
+    <section id="s12">
+      <h2><em>12</em>快捷键</h2>
+      <table>
+        <tr><td><kbd>/</kbd></td><td>聚焦搜索框（不用先用鼠标点）</td></tr>
+        <tr><td><kbd>⌘</kbd><kbd>K</kbd> / <kbd>Ctrl</kbd><kbd>K</kbd></td><td>快速查找链接：名字、拼音首字母、网址、标签都能搜</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>打开刚抽中的那个链接</td></tr>
+        <tr><td><kbd>R</kbd></td><td>随机抽一个（盲盒模式里就是那颗「抽一个」）</td></tr>
+        <tr><td><kbd>?</kbd></td><td>打开快捷键表</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>关掉所有弹窗 / 退出编辑模式 / 收起右键菜单</td></tr>
+      </table>
+      <h3>鼠标能干的事</h3>
+      <table>
+        <tr><td>单击</td><td>打开链接；编辑模式里则是勾选 / 取消勾选</td></tr>
+        <tr><td>双击</td><td>编辑模式里双击链接 = 就地改名字和网址；双击分类名 = 就地改分类名</td></tr>
+        <tr><td>右键</td><td>三处各有各的菜单：<strong>链接</strong>上是 打开 / 复制网址 / 置顶 / 编辑 / 移到别的分类 / 删除；<strong>分类</strong>上是 打开 / 置顶 / 重命名 / 新建子分类 / 隐藏 / 清空 / 删除；<strong>固定栏胶囊</strong>上是 打开 / 改个名字 / 改链接 / 取消固定</td></tr>
+        <tr><td>左键点「场景」</td><td>弹出场景菜单，<strong>再点一下收起</strong>。这颗是用左键开的（右键也行）—— 上面那三处是右键开的，这一处不是，免得你总去它上面右键试</td></tr>
+        <tr><td>拖动</td><td>编辑模式里上下拖 = 排序；把链接拖到左边某个分类上松手 = 搬过去</td></tr>
+        <tr><td>点那颗 ✕</td><td>搜索框 / 筛选框右边的小圆钮，把框里的字一次清掉（框里有字才出现）</td></tr>
+      </table>
+      <div class="tip">
+        在输入框里打字的时候，这些单键快捷键都会让路 —— 不会把你要打的字吃掉。
+      </div>
+    </section>
+
+    <!-- ============ 13 ============ -->
+    <section id="s13">
+      <h2><em>13</em>放到虚拟主机 / 用域名访问（多用户）</h2>
+      <p class="q">这一节回答几个最常问的问题，包括：「我更新了页面，会不会把访客自己加的链接冲掉？」</p>
+
+      <h3>先讲结论</h3>
+      <div class="card">
+        <p style="margin-bottom:8px;"><strong>不会。访客加的链接跟你的文件是两回事，互不干扰。</strong></p>
+        <ul style="margin-bottom:0;">
+          <li>链接存在<strong>访客自己浏览器的 localStorage</strong> 里，不在你的 HTML 文件里。</li>
+          <li>localStorage 是按<strong>域名</strong>隔离的 —— 每个访客打开你的域名，看到的都是他自己那份数据。</li>
+          <li>你更新 <code>index.html</code>（加功能、改样式）只是换了「外壳」，访客已有的链接原封不动，刷新一下就是「新功能 + 他自己的数据」。</li>
+          <li>反过来也成立：你本地的链接不会跑到访客那边去。</li>
+        </ul>
+      </div>
+
+      <h3>为什么能做到</h3>
+      <p>因为整个页面是<strong>纯前端单文件</strong>：没有后端、没有数据库、不需要 PHP 或 Node。文件本身就是全部程序，数据全部留在浏览器。所以：</p>
+      <ul>
+        <li>上传：只要把 <code>index.html</code> <strong>一个文件</strong>丢进网站根目录（或子目录）就行，静态空间就够。使用手册已经内置在这个页面里（右栏底下那颗「使用手册」），不用再传第二个文件。</li>
+        <li>这一份 <code>manual.html</code> 是手册的<strong>源文件</strong>（方便单独编辑、也方便想把手册单独发出去的人），页面里那份是从它同步过来的，不传也不影响使用。</li>
+        <li>不需要配任何环境、不需要建库、不需要开权限。</li>
+        <li>PWA 的清单文件是页面运行时生成的，不用另外上传。</li>
+      </ul>
+
+      <h3>访客会看到什么</h3>
+      <ol>
+        <li>第一次打开：看到你设的<strong>默认链接</strong>（就是文件里那批演示数据），他可以直接改、删、加。</li>
+        <li>他一旦改过，数据就落到他自己的浏览器里了。以后你换默认链接，他那边不会被覆盖 —— 他自己动过的那份说了算。</li>
+        <li>如果他一条都没动过，你换掉默认链接，他下次打开看到的就是你新设的那批。</li>
+      </ol>
+      <div class="tip">
+        <b>想给别人一份「预置好的」链接？</b>用 <strong>备份 / 恢复 → 导出备份</strong> 生成 JSON 发给他，他「导入备份」即可。
+        想让<strong>所有</strong>访客一进来就有你的那批链接，直接改 <code>index.html</code> 里默认数据那段（源码里的 <code>DEFAULT_SITES</code>）。
+      </div>
+
+      <h3>什么情况下数据会丢</h3>
+      <table>
+        <tr><td>清浏览器数据 / 重置浏览器</td><td>会丢</td></tr>
+        <tr><td>换电脑、换浏览器</td><td>看不到（数据不在那台机器上）</td></tr>
+        <tr><td>无痕 / 隐私窗口</td><td>关掉就没了</td></tr>
+        <tr><td>你的域名 / 端口变了</td><td>算成新站点，看不到旧数据</td></tr>
+      </table>
+      <p>要跨设备、要防丢，就上<strong>云同步</strong>（第 11 节，存自己的私有 Gist），或者定期 <strong>导出备份</strong>。这两条路都是给访客自己用的，你不需要做任何额外配置。</p>
+
+      <h3>做不到的事（先说清楚）</h3>
+      <p>因为没后端，所以做不到「所有人共享同一份实时数据」：你在这台电脑加一条，别人那边不会冒出来。如果你需要的是这种「多人共用一张导航表」，那得配服务器和数据库，这个单文件方案不覆盖。</p>
+    </section>
+
+    <!-- ============ 14 ============ -->
+    <section id="s14">
+      <h2><em>14</em>数据存哪 / 常见问题</h2>
+      <h3>数据到底在哪儿</h3>
+      <p>链接、点击次数、分类、待办、主题、密度、搜索引擎、隐藏分类、<strong>分享页「时光轨迹」里记的那些</strong>、<strong>首页那些文案和二维码</strong>，全部在这台浏览器的 localStorage 里，按 <code>nav.</code> 开头的键名存着。
+      <strong>本地音乐是唯一的例外</strong>：那里的歌存在浏览器的 IndexedDB 里（localStorage 只有 5MB，一首歌就塞不下），歌单也只记在你这台机器上。
+      没有任何一个字节发到服务器 —— 断网也能正常用。</p>
+      <h3>常见问题</h3>
+      <table>
+        <tr><td>链接点不动 / 位置不对</td><td>拖动和排序要先在工具条上点 <strong>编辑</strong> 进编辑模式</td></tr>
+        <tr><td>拖动没反应</td><td>当前是「最常点 / 按名字」排序，或者这个分类下面还有子分类。切回「手动排序」再拖</td></tr>
+        <tr><td>某个分类不见了</td><td>多半是被藏起来了（在那个分类上点右键 → 隐藏）。看左栏分类树底下的「已隐藏 N 个分类」那一行</td></tr>
+        <tr><td>几千条会不会卡</td><td>不会。列表分批渲染，首屏只画第一批，往下滚才继续</td></tr>
+        <tr><td>能当浏览器主页吗</td><td>能。它带了 PWA 清单，浏览器里「安装 / 添加到主屏幕」之后就有一个独立图标</td></tr>
+        <tr><td>清空后想找回来</td><td>备份弹窗最下面那几份<strong>自动快照</strong>里点一下</td></tr>
+        <tr><td>切了场景，分类 / 固定栏没跟着换</td><td>场景只装「固定栏 + 默认分类」两样，而且那个分类被删了或者正被藏起来时<strong>不会硬跳过去</strong>。主题、强调色、隐藏分类这些本来也不跟场景走</td></tr>
+        <tr><td>分类太多，滚不过来</td><td>点分类栏标题右边那颗上下箭头，全部折叠 / 全部展开（「最近添加」那棵树也一起折）</td></tr>
+        <tr><td>粘了一长串，怎么没拆开</td><td>只认<strong>恰好一个</strong>网址。粘了一堆网址、或者一个字都没有，它就原样不动 —— 宁可不拆，也不拆错</td></tr>
+        <tr><td>歌单里的歌没了</td><td>歌存在<strong>这台浏览器</strong>的数据库里，换个浏览器 / 换台电脑 / 清了浏览器数据就会没。右上角 <strong>＋</strong> 重新选一遍就好 —— 你原来硬盘上的文件一直没动过</td></tr>
+        <tr><td>选了歌没声音</td><td>先看最右边那颗静音键是不是被点过、旁边音量条是不是拖到底了。另外刷新之后<strong>不会自动接着放</strong>，得自己点一下播放钮</td></tr>
+        <tr><td>手机上怎么整理</td><td>手机上保留了完整功能，只是左栏分类换成横向滑动，门头（标志 / 主标题 / 副标题）搬到中栏最上面那一行，时钟和日期挪到它右边，一行里左右两栏</td></tr>
+        <tr><td>分享页在哪</td><td>右栏页脚那一撮按钮的最后一颗，或者底部标签栏那颗「分享」，再或者地址栏后面直接加 <code>#share</code>。它是一整页覆盖；按 <kbd>Esc</kbd>，或者点标签栏那颗「导航」回来（见 <a href="#s15">15 分享页</a>）</td></tr>
+        <tr><td>底部那条标签栏是什么</td><td>首页 / 导航 / 分享三个页面之间的切换器，两个方向都能自己加标签。见 <a href="#s16">16 底部标签栏</a></td></tr>
+        <tr><td>首页上的字怎么改</td><td>页脚那颗 <strong>编辑首页文案</strong>。介绍 / 关于 / 赞助三段、还有两块二维码（名字、图片、说明）都在那个弹窗里（见 <a href="#s17">17 首页能放什么</a>）</td></tr>
+        <tr><td>首页的二维码怎么换成我自己的</td><td>「编辑首页文案」里那块二维码，图片填网址或者点 <strong>选图</strong> 从本地挑一张（≤ 260&nbsp;KB）。没放图时显示成虚线占位</td></tr>
+        <tr><td>自己加的标签丢了</td><td>它存在<strong>这台浏览器</strong>里（<code>nav.tabs.v1</code>），会跟着备份和快照走。「清空全部数据」会连它一起清；导入一份<strong>老备份</strong>不会清它</td></tr>
+        <tr><td>分享页写的东西会不会丢</td><td>跟链接一样存在这台浏览器里，也会跟着<strong>备份和快照</strong>一起走。导入一份老备份（还没有分享页这个字段的那种）<strong>不会</strong>把记录抹掉</td></tr>
+        <tr><td>分享页顶上那几个快捷链接哪来的</td><td>是这一页自己的<strong>固定链接</strong>，点虚线 <strong>＋</strong> 手填名字和网址，最多 6 个（见 <a href="#s15">15 分享页</a>）。跟导航页那条固定栏各存各的</td></tr>
+        <tr><td>分享页那一条太长，想全看</td><td>正文超过 190 个字会先折起来，点下面的 <strong>展开全文</strong> 就铺开</td></tr>
+        <tr><td>广告 / 置顶是什么意思</td><td>写一条时勾上「标成广告」，那条会带一枚「广告」徽标并高亮；勾上「置顶」，那条会被挑到时间轴最上面那个「置顶」组里</td></tr>
+      </table>
+    </section>
+
+    <!-- ============ 15 ============ -->
+    <section id="s15">
+      <h2><em>15</em>分享页 · 时光轨迹</h2>
+      <p>一整页覆盖的视图，跟导航页共用同一套设计变量（所以换主题、换强调色它自动跟着变）。里面是一条<strong>竖着的时间轴</strong>：<strong>左边一条导轨</strong>（日期 + 一枚带柔光的圆点），<strong>右边摆卡片</strong>。一天一段，日期下面写着「周几 · 几条」。</p>
+      <h3>怎么进去、怎么出来</h3>
+      <ul>
+        <li><strong>进</strong>：右栏页脚那一撮按钮里那颗 <strong>分享页</strong>；或者在地址栏后面直接加 <code>#share</code> —— 存成书签、发给别人都行（部署仍然只传 <code>index.html</code> 一个文件）。</li>
+        <li><strong>出</strong>：按 <kbd>Esc</kbd>，或者点底部标签栏那颗 <strong>导航</strong>。这里有个讲究：<strong>Esc 一次只退一层</strong> —— 写东西的弹窗开着时，第一下只关弹窗，再按一下才离开这一页。</li>
+      </ul>
+      <h3>顶上那条搜索 / 筛选条</h3>
+      <p>顶上那张卡跟<strong>导航页的搜索卡是同一张</strong>（同一个样式、同一套规矩），只是最右边那一格换成了<strong>固定链接</strong>。左边搜索框筛这一页：<strong>标题、正文、标签、域名</strong>里任意一处沾上这个词就留下。一整条都没沾上的那些天会<strong>连着日期一起消失</strong>，不会留个空日子在那儿；搜不到时给的是「没有匹配的记录」，不是「这一页还空着」。</p>
+      <p>搜索框右边那个数字：没搜的时候是<strong>「共 N 条」</strong>，搜了就变成<strong>「筛出 M / N 条」</strong> —— 有搜索词时只报总数等于没说。</p>
+      <h3>固定链接（最多 6 个）</h3>
+      <ul>
+        <li>最右边那颗虚线 <strong>＋</strong>：填个<strong>名字</strong>（不填就自动用域名），再填<strong>网址</strong>。网址<strong>只认 http(s) 开头</strong>；只填 <code>example.com</code> 会自动补成 <code>https://</code>。</li>
+        <li>左键<strong>一点就开</strong>（新标签页）。在上面<strong>点右键</strong>能改名字 / 网址，或者删掉。最多放 <strong>6 个</strong>。</li>
+        <li>它跟导航页顶上那条固定栏<strong>各存各的</strong>：那边是从你的链接库里钉出来的，这边是手填的独立网址 —— 所以在导航页删掉一个分类，不会把这里的链接连坐删掉。</li>
+      </ul>
+      <h3>写一条 / 改 / 删</h3>
+      <ul>
+        <li><strong>写一条</strong>：入口在<strong>管理台</strong> —— 左边「工具」里的「写一条」，或者「分享页」页签右上角那颗（这一页平时只负责看；一条都还没有的时候，页码中间那颗「写第一条」也能开）。<strong>标题必填</strong>（空着不给保存），正文想写多少写多少（换行原样保留），链接和日期都选填，日期默认<strong>今天</strong>。</li>
+        <li><strong>改 / 删</strong>：鼠标压到某一条上，右下角才现出「编辑 / 删除」；手机上这两颗<strong>一直亮着</strong>（手机没有「悬停」这回事）。<strong>删除必问一句</strong>，删错了没有撤销。</li>
+        <li>改了日期那条会<strong>搬到新的一天</strong>去 —— 日期是倒序排的，改得越新越靠上；把一天的最后一条删掉，那一整天会连着日期和圆点一起消失。</li>
+      </ul>
+      <h3>卡片能配图、能置顶、能标广告</h3>
+      <p>写一条的弹窗里多了三个可选项，都是<strong>不填就当没有</strong>（老记录渲染出来跟以前一模一样）：</p>
+      <ul>
+        <li><strong>封面图</strong>：填个图片网址，或者点右边的<strong>选图</strong>从本地挑一张（自动转成内嵌图，单张别超过 260&nbsp;KB）。本地图选完，框里会显示成<strong>「已选本地图」</strong>一句人话（那串内嵌数据收在背后，不摊在框里）；想换成网址，直接在框里打字覆盖就行。它铺在标题上面，按 <strong>16:9</strong> 裁切，最高不超过 280px —— 一张宽卡不至于变成「一张图的附注」。</li>
+        <li><strong>置顶</strong>：打开之后这一条会被<strong>挑出来单独成一组</strong>，标题写着「置顶」，永远压在最上面 —— 不管它是哪天写的。标题前面还会挂一枚小图钉。</li>
+        <li><strong>标成广告</strong>：卡片会亮起来（边线用强调色、铺一层极淡的强调色底），并且带一枚<strong>「广告」徽标</strong> —— 有封面图时浮在图的右上角，没图时落到最下面那一行，两种都一定看得见。</li>
+      </ul>
+      <h3>时间轴长什么样</h3>
+      <p>左边那条导轨竖着走，日期一列排在最边上、每颗圆点正落在导轨上。右边是一片<strong>卡片</strong>，宽度用满整条内容列（内容区最宽约 1400px）。</p>
+      <p>分列按<strong>那一天写了几条</strong>来定：一条就自己占满这一片；<strong>两条一行两个、三条一行三个</strong>；<strong>四条会排成两行两个</strong>（一行三个会剩一张孤零零吊在最后，很难看，所以退成 2×2）；五条是「三 + 二」，六条是「三 + 三」。一句话：<strong>尽量别留单张的尾行</strong>。</p>
+      <p><strong>不管那天有几条，卡片的右边都落在同一条竖线上</strong>，跟上面那条搜索卡也是同一条 —— 所以从 1 条、2 条、3 条的日子里一路扫下来，右边是齐的，不会「这条短一截」。</p>
+      <p>卡片本身有底色和细边，鼠标压上去边线会加深、浮起一层阴影。</p>
+      <h3>长正文会先收起来</h3>
+      <p>一条记录的正文超过 190 个字就先折起来（底下有渐隐），点它下面的 <strong>展开全文</strong> 才铺开 —— 不然一条能占满三屏，时间轴就没法翻了。</p>
+      <h3>顶上那两行字可以改</h3>
+      <p>大标题和它下面那行小字，点右边那颗 <strong>✎</strong> 就能改（默认「时光轨迹 / 时光总是悄然而逝，记录总是慢慢沉淀」）。</p>
+      <h3>它跟着「外观」走</h3>
+      <p>大标题、日期、条目小标题、那颗圆点用的是<strong>同一套强调色</strong>。想要参考图那种红 / 粉，去「外观」里挑一颗偏红的就行；浅色 / 深色也一起跟着变（深色下这几处的颜色是按深色底重新调过的，不会糊在黑底里）。</p>
+      <h3>手机上长什么样</h3>
+      <p>两栏并排太挤，所以<strong>日期挪到卡片上方</strong>竖着排，导轨压到最左边贴着屏幕边。顶上直接就是那张搜索卡：搜索框独占一行，固定链接再掉到下一行自己在里面横滑。卡片一律<strong>一列到底</strong>（手机上不再分列）；操作按钮常驻。</p>
+      <h3>数据存在哪</h3>
+      <p>记录在<strong>这台浏览器</strong>里，键名 <code>nav.share.v1</code>；顶上那几个<strong>固定链接</strong>是另一个键 <code>nav.sharefix.v1</code>。两个都会跟着<strong>备份和快照</strong>一起走，也会被「清空全部数据」一起清掉。导入一份<strong>老备份</strong>（还没有分享页 / 固定链接这两个字段的那种）<strong>不会</strong>把你的记录抹掉。</p>
+    </section>
+
+    <!-- ============ 16 ============ -->
+    <section id="s16">
+      <h2><em>16</em>底部标签栏（首页 / 导航 / 分享 / 文章）</h2>
+      <p>屏幕底部正中那条浮着的小胶囊，就是<strong>标签栏</strong>。它把几个页面收进了<strong>同一个文件</strong>里切换 —— 首页、导航、分享、文章，点哪颗就去哪儿，当前那颗用强调色底标出来。</p>
+      <h3>四个页面分别是什么</h3>
+      <ul>
+        <li><strong>首页</strong>：打开网站<strong>默认落在这一页</strong>。它是这个小站的「门面」：一句介绍、几块说明、两组二维码（见 <a href="#s17">17 首页能放什么</a>）。</li>
+        <li><strong>导航</strong>：就是原来那个三栏首页 —— 链接、分类、搜索全在这儿。</li>
+        <li><strong>分享</strong>：分享页「时光轨迹」（见 <a href="#s15">15 分享页</a>）。</li>
+        <li><strong>文章</strong>：用 Markdown 写长文的地方（见 <a href="#s18">18 文章页</a>）。</li>
+      </ul>
+      <h3>自己加标签</h3>
+      <ul>
+        <li>点最右边那颗 <strong>＋</strong>：起个名字（最多 10 个字），再选<strong>点了去哪儿</strong> ——
+          <strong>内置页面</strong>（首页 / 导航 / 分享 / 文章里挑一个）或者<strong>外部网址</strong>。
+          外链<strong>只认 http(s) 开头</strong>，点了会<strong>新开一个标签页</strong>（不在这个页面里跳走）。</li>
+        <li>加多了会<strong>横向滚</strong>，不换行、也不会把页面撑宽。自己加的标签<strong>最多 12 个</strong>。</li>
+      </ul>
+      <h3>改名 / 改去向 / 删掉</h3>
+      <ul>
+        <li>在自己加的标签上<strong>点右键</strong>：<strong>改名字 / 改去向</strong>、<strong>删掉这个标签</strong>。删除会先问一句。</li>
+        <li>内置那四颗<strong>不给改也不给删</strong>（弄坏了回不来），右键会直接说一句，不会弹一个灰着的菜单。</li>
+      </ul>
+      <h3>左右拖动换页</h3>
+      <ul>
+        <li>在页面上<strong>按住往左拖</strong>（手机上是往左划）＝ 去<strong>下一页</strong>，<strong>往右拖</strong>＝ 回<strong>上一页</strong>。顺序就是：<strong>首页 → 导航 → 分享</strong>。</li>
+        <li>拖到一半能看见隔壁那一页跟着滑进来，松手<strong>拖过一小段就翻过去</strong>，没拖够就<strong>弹回原位</strong>。已经在头（首页）或尾（分享）还往那边拖，会有一点「拉不动」的手感。</li>
+        <li><strong>鼠标和手指都行</strong>。桌面上要拖得比手指远一些才算数 —— 免得选个文字就被换了页。</li>
+        <li>竖着拖<strong>不算</strong>：那是在滚页面，照旧。点在<strong>能点的东西</strong>上（链接、按钮、输入框、标签栏、弹窗）也不会触发。</li>
+        <li>手机上横向划<strong>分类条</strong>（导航页顶上那条）滑的是分类，<strong>不换页</strong>；分享页顶上那条固定链接也一样。</li>
+        <li>只管<strong>上面这三页</strong>。<strong>文章页</strong>（第 18 节）和管理台<strong>不参与拖动</strong> —— 它们各有各的入口，拖过去反而容易误触。自己加的标签也不在这个顺序里，有外链的话拖过去只会平白弹一个浏览器标签页。</li>
+      </ul>
+      <h3>地址栏上的锚</h3>
+      <p>每一页各有一个锚：<code>#home</code> / <code>#nav</code> / <code>#share</code> / <code>#post</code>。想直接落在某一页，在网址后面加上它就行；刷新、存书签、发给别人都不会跑偏。<strong>什么都不加</strong>时看上次停在哪（存在 <code>nav.view.v1</code>）—— 第一次打开就是首页。</p>
+      <h3>手机上</h3>
+      <p>手机上标签栏一样贴在屏幕最底下，会自动避开 iPhone 那条横杠（安全区）；内容底部留了空，最后一行不会被它压住。首页那三张卡片在窄屏上改成竖着一列。</p>
+      <h3>数据存在哪</h3>
+      <p>自己加的标签存在 <code>nav.tabs.v1</code> 里，会跟着<strong>备份和快照</strong>走，也会被「清空全部数据」清掉（内置那四颗是写死在页面里的，永远在）。「上次停在哪个页面」<strong>不进备份</strong> —— 换台电脑打开当然该从首页开始。</p>
+    </section>
+
+    <!-- ============ 17 ============ -->
+    <section id="s17">
+      <h2><em>17</em>首页能放什么</h2>
+      <p>首页是打开网站<strong>第一眼</strong>看到的地方，内容区最宽约 1120px（比导航页窄一点，因为它是让人「读」的，不是让人「扫」的）。从上到下是这几块：</p>
+      <h3>页面上一共五块</h3>
+      <ul>
+        <li><strong>首屏（电脑上是左右分栏）</strong>：左边是方块字（跟导航页的标志同步）+ 站名 + 一句介绍，下面两颗按钮「去导航页 / 看看时光轨迹」；右边是<strong>「这台设备上」</strong> —— 链接、分类、时光记录、置顶<strong>四个数字</strong>，全是<strong>现算的真数</strong>（在导航页加一条、回到首页它自己就变了）。一条都还没有的时候，那句人话会换成「还没开始收东西」。</li>
+        <li><strong>这个站有什么</strong>：三张说明卡（各带一个图标），告诉你导航页、分享页、数据各是怎么回事（这三张是写死在页面里的）。</li>
+        <li><strong>关于</strong>：一段自我介绍 —— 这个站怎么来的、数据在哪、有什么脾气。<strong>它和「赞助」在电脑上是并排的两栏</strong>（每栏五百来像素，一行二十来字正好读），手机上才上下叠。</li>
+        <li><strong>赞助</strong>：一段想说的话；二维码在下面那一块。</li>
+        <li><strong>关注 / 找到我</strong>：<strong>两块二维码</strong>（默认是「公众号」和「交流群」），每块能配名字、图片、一句说明。</li>
+      </ul>
+      <h3>怎么改</h3>
+      <ul>
+        <li>页脚那颗 <strong>编辑首页文案</strong>：弹窗里三个大框（介绍 / 关于 / 赞助），换行原样保留，各有字数上限（160 / 600 / 400 字）。</li>
+        <li>下面两块二维码各有：<strong>名字</strong>（最多 12 字）、<strong>图片</strong>（填网址，或点 <strong>选图</strong> 从本地挑，单张 ≤ 260&nbsp;KB；选完框里显示成「已选本地图」）、<strong>说明</strong>（最多 40 字）。</li>
+        <li><strong>还没放图</strong>的那块会显示成虚线占位，写着「去下面的『编辑首页文案』填」—— 一眼就知道是留着的位子，不是没做完。</li>
+        <li>上面三张说明卡（「这个站有什么」）<strong>不给改</strong>，它们是固定的介绍。</li>
+      </ul>
+      <h3>数据存在哪</h3>
+      <p>存在 <code>nav.home.v1</code> 里。<strong>它会进「导出备份」、但不进「自动快照」</strong> —— 二维码的图片是内嵌的一长串数据，快照留 5 份很容易把浏览器的存储撑爆，而快照的用处是「链接 / 记录搞砸了能退回来」，首页文案不在那件事里（跟音乐一样待遇）。想留一份，导出备份带走就行。</p>
+      <h3>手机上</h3>
+      <p>首屏从左右分栏<strong>叠成一列</strong>（「这台设备上」落到两颗按钮下面，四个数字回到两行两列）；关于 / 赞助也改成上下叠；三张说明卡和两块二维码都改成<strong>竖着一列</strong>。</p>
+    </section>
+
+    <!-- ============ 18 ============ -->
+    <section id="s18">
+      <h2><em>18</em>文章页 · 用 Markdown 写长文</h2>
+      <p>标签栏第 4 颗 <strong>文章</strong>。这一页是给「比自己记得住的那点事更长」的东西准备的：一篇笔记、一段折腾记录、一份给自己的说明。跟分享页那条「一句话记录」分工不同 —— 那个记瞬间，这个写完整的一篇。</p>
+
+      <h3>列表：一眼看到写了哪些</h3>
+      <ul>
+        <li>顶上一条搜索框：<strong>标题、正文、标签</strong>都能搜到；右边那颗 <kbd>Esc</kbd> 提示跟别处一样，有字的时候输入框里会冒出一颗 <strong>✕</strong>（点一下清空、列表当场恢复）。</li>
+        <li>搜索框右边写着 <strong>共 N 篇</strong>；筛起来之后变成 <strong>筛出 x / N 篇</strong>。手机上这行字先让位（屏幕太窄），搜索框留着。</li>
+        <li>每张卡片：<strong>标题（最多两行）+ 摘要（最多两行）+ 日期 + 标签</strong>。标题和摘要都不会无限长，卡片高度才齐。</li>
+        <li><strong>顺序是「置顶优先，然后谁最近动过谁在前」</strong>。所以补完一篇半年前的笔记，它会自己浮上来 —— 不是按创建时间沉在底下。</li>
+        <li>一篇都还没有时，中间那行写「还没有文章」并给一颗 <strong>写第一篇</strong>；搜不到时写「没有匹配的文章」，那颗按钮收起来（这会儿该换词，不是该写新的）。</li>
+      </ul>
+
+      <h3>读：点一下就进</h3>
+      <ul>
+        <li>点卡片（或者键盘 <kbd>Tab</kbd> 到它、按 <kbd>Enter</kbd>）进<strong>阅读态</strong>。正文宽度收在 820，行高 1.85 —— 长文读起来不摇头。</li>
+        <li><strong>这是「同一页翻个面」，不换页也不刷新</strong>：地址栏还是 <code>#post</code>，按浏览器后退不会变成「退出文章页」。</li>
+        <li>右上两颗：<strong>编辑</strong> / <strong>删除</strong>；左上 <strong>全部文章</strong> 回列表。<kbd>Esc</kbd> 也分层退：<strong>第一下</strong>回列表（还在这一页），<strong>第二下</strong>才离开文章页。</li>
+        <li>长代码行<strong>自己在代码块里横着滚</strong>，宽表格也一样 —— 它们不会把整页撑宽。</li>
+        <li>代码块顶上会标出语言（<code>```js</code> 写的那段就标 <code>js</code>），一眼知道这是什么；表格<strong>隔行浅底</strong>、引用左边一根<strong>强调色实条</strong>，长文里靠这些分层次。</li>
+      </ul>
+
+      <h3>写：在管理台右边那条编辑栏里，写和预览两态</h3>
+      <p>文章是<strong>内容</strong>，所以写和改都归<strong>后台</strong>（见 <a href="#s17">17 管理台</a>）。在文章页点 <strong>写一篇</strong> / <strong>编辑</strong>，会把你<strong>带到管理台</strong>，面板从右边滑进来 —— 跟后台里改一条链接是同一套「就地编辑」，不再是一个盖在文章页上的大弹窗。管理台工具箱里那颗 <strong>写文章</strong> 也能直接开。</p>
+      <ul>
+        <li>点 <strong>写一篇</strong>（只读状态下第一次点会先要管理员密码，跟改链接是同一道门）。<strong>没解锁的人不会被顺路送进后台</strong>：先问密码，密码对了那一下才接着把编辑栏打开。</li>
+        <li>编辑栏是<strong>贴着右边、上下通到底的一条</strong>（宽 620）。左边那张表还看得见、也点得动 —— 遮罩是透明的、不吃点击，这就是「在边上改」和「挡住你」的区别。手机上它铺满整屏。</li>
+        <li>四样东西：<strong>标题</strong>（必填，最多 60 字）、<strong>摘要</strong>（留空就自动从正文里挑第一段，去掉 <code>#</code> <code>**</code> 这些标记）、<strong>标签</strong>（逗号分隔，最多 6 个）、<strong>正文</strong>（Markdown）。</li>
+        <li>正文框<strong>吃掉剩下的高度</strong>：屏幕多高就能写多高，底下那颗 <strong>保存</strong> 永远贴着底边 —— 写长文不用一边敲一边滚。</li>
+        <li>正文框右上角有 <strong>写 / 预览</strong> 两个小按钮。预览用的是<strong>同一个渲染器</strong>，所以「预览看到什么样，存下来就是什么样」；预览开着的时候继续打字，它跟着变。切到预览时那块地方整个交给预览，长文在框里自己滚。</li>
+        <li><strong>标题空着不让存</strong>（会提示一句，框还留在那儿让你填）。</li>
+        <li>存完<strong>留在管理台</strong> —— 一次连着写两篇的人不该被踹回前台。想立刻看效果，点提示条上那颗 <strong>去读</strong>，直接落到刚写那篇的阅读态。改一篇也一样，改完还在这儿。</li>
+        <li>长文写到底不想找鼠标：<kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 直接保存。</li>
+        <li>要关掉：右上角那颗 <strong>✕</strong>、底下的 <strong>取消</strong>、或者按一下 <kbd>Esc</kbd>（只关编辑栏，人还留在管理台）。</li>
+      </ul>
+
+      <h3>写的时候有哪些快捷键</h3>
+      <p>正文框下面有一排小按钮 —— <strong>点一下就等于按了一次对应的组合键</strong>，鼠标用户不用背键位；反过来，键位表就是这排按钮上的 <code>title</code>（鼠标停一下就能看到）。两边走的是同一套逻辑，不会出现「按钮好使、快捷键其实没这功能」。</p>
+      <table>
+        <tr><td><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>B</kbd> / <kbd>I</kbd> / <kbd>`</kbd></td><td><strong>粗体</strong> / <em>斜体</em> / <code>行内代码</code></td></tr>
+        <tr><td><kbd>⇧</kbd><kbd>⌘</kbd> + <kbd>X</kbd></td><td>删除线</td></tr>
+        <tr><td><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>K</kbd></td><td>链接：插成 <code>[文字](地址)</code>，光标<strong>直接落在地址里</strong></td></tr>
+        <tr><td><kbd>⇧</kbd><kbd>⌘</kbd> + <kbd>K</kbd> / <kbd>H</kbd></td><td>代码块 / 标题</td></tr>
+        <tr><td><kbd>⇧</kbd><kbd>⌘</kbd> + <kbd>.</kbd> / <kbd>8</kbd> / <kbd>7</kbd></td><td>引用 / 无序列表 / 有序列表（Windows 上是 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 同一个键）</td></tr>
+        <tr><td><kbd>Tab</kbd> / <kbd>⇧</kbd><kbd>Tab</kbd></td><td>缩进 / 退一格（每次两个空格；选了几行就整段一起挪）</td></tr>
+        <tr><td><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>保存</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>收起编辑栏（人还在管理台）</td></tr>
+      </table>
+      <ul>
+        <li><strong>有选区就包住它</strong>；没选区就插一对空标记、<strong>并把中间那个占位词选中</strong>，接着敲字直接替换 —— 不用先删掉它。</li>
+        <li><strong>再按一次就是撤销</strong>：<code>**粗体**</code> 里再按 <kbd>⌘</kbd>+<kbd>B</kbd> 会脱掉标记；标题、代码块同理（<code>##</code> 按一下变回正文，围栏按一下删掉，代码本身留着）。</li>
+        <li>标题 / 引用 / 列表这类<strong>行首</strong>的快捷键，<strong>选了几行就逐行加</strong>；<strong>空行不动</strong>（夹一条空的「- 」行，渲染出来是一条空项目，很脏）。</li>
+        <li><kbd>Tab</kbd> <strong>只在确实要缩进的时候才接管</strong>（列表、引用、代码块里，或者行首已经有空格、你选了一段）。普通段落里按 <kbd>Tab</kbd> 还是照常把光标送到下一个框 —— 否则键盘就再也走不出正文框，连下面那颗「保存」都按不到。</li>
+      </ul>
+
+      <h3>支持哪些 Markdown</h3>
+      <table>
+        <tr><td><code># 标题</code>（1~6 级）</td><td><code>#</code> 后面<strong>必须有空格</strong>，<code>#标签</code> 不算标题</td></tr>
+        <tr><td><code>**粗体**</code> / <code>*斜体*</code> / <code>~~删除线~~</code></td><td>下划线写法 <code>_斜体_</code> 也认</td></tr>
+        <tr><td><code>`行内代码`</code></td><td>里面的 <code>*</code> 是代码，不会被当成强调</td></tr>
+        <tr><td><code>```</code> 围栏代码块</td><td>可以带语言名（<code>```js</code>），里面的尖括号原样显示</td></tr>
+        <tr><td><code>&gt; 引用</code></td><td>引用里还能再放列表 / 标题</td></tr>
+        <tr><td><code>-</code> / <code>*</code> / <code>+</code> 无序，<code>1.</code> 有序</td><td>缩进两格的续行并进上一条，行间用换行断开</td></tr>
+        <tr><td><code>| a | b |</code> 加一行 <code>|---|---|</code></td><td>表格，缺的格子留空</td></tr>
+        <tr><td><code>---</code></td><td>分割线（三个以上 <code>-</code> / <code>*</code> / <code>_</code> 都行）</td></tr>
+        <tr><td><code>[文字](https://…)</code></td><td>外链<strong>新窗口</strong>打开，并且不带回门（<code>rel=noopener</code>）；<code>#锚点</code> 和 <code>mailto:</code> 在本页跳</td></tr>
+        <tr><td><code>![说明](图片地址)</code></td><td>只认 http(s) 或本站选的本地图（<code>data:image</code>）</td></tr>
+      </table>
+      <div class="tip">
+        <b>安全上写死了一条规矩：</b>正文里的 HTML <strong>不会被当成标签执行</strong>，你写 <code>&lt;script&gt;</code> 就显示成 <code>&lt;script&gt;</code> 这几个字；
+        链接协议不在 http(s) / mailto / 锚点里的（比如 <code>javascript:</code>），会<strong>只显示文字、不给链接</strong>。
+        这不是「防别人」，是「防自己转帖的时候顺手贴进来一段东西」。
+      </div>
+
+      <h3>改 / 删</h3>
+      <ul>
+        <li>读到某篇时右上角 <strong>编辑</strong>：同样把你带回管理台那条编辑栏，里面带着旧内容，改完还是那一篇（不会又存出一篇新的）。</li>
+        <li><strong>删除会先问一句</strong>，并且<strong>先存一份快照</strong>：点错了能去「备份 / 恢复 → 自动快照」里挑「删文章前」那份退回来。</li>
+      </ul>
+
+      <h3>数据存在哪</h3>
+      <p>全部在 <code>nav.posts.v1</code> 里，一篇一条。存的是<strong>你写的 Markdown 原文</strong>，不是渲染后的网页 —— 所以备份文件是能读的、以后换渲染方式也救得回来。</p>
+      <ul>
+        <li>它<strong>进「导出备份」也进「自动快照」</strong>（纯文字、份量小，很值得带上），「清空全部数据」会把它一起清掉。</li>
+        <li><strong>导出的发布版里也带着文章</strong>，但那是「给别人读」的一页：<strong>写 / 编辑 / 删除三颗一律不出现</strong>，就算绕过按钮也进不去。</li>
+        <li>最多 200 篇，单篇正文最多 2 万字 —— 再多列表也没法看，浏览器的存储也扛不住。</li>
+      </ul>
+
+      <h3>手机上</h3>
+      <p>卡片改成<strong>一列</strong>，字号降一档；顶部「共 N 篇」让位，<strong>写一篇</strong>留在搜索框同一行；底部给浮动标签栏留了空，最后一张卡片不会被压住。写文章的编辑栏在手机上是<strong>整屏一张纸</strong>，十颗快捷键按钮照样排得下。</p>
+    </section>
+
+
+  </main>
+
+  <div class="foot">
+    <span>手册版本 v1 · 跟随页面功能更新</span>
+    <span>·</span>
+    <span>数据全部留在你自己的浏览器里，页面不联网、不上传</span>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   主题与外观：跟主页读同一批 localStorage 键，所以手册的颜色
+   会跟你的导航页保持一致（你在主页换了深色、强调色、背景图，这里跟着变）。
+   键值和 index.html 完全一致，改一边要两边一起改。
+   ============================================================ */
+(function(){
+  var PREF_KEY = 'nav.theme.v1';
+  var ACC_KEY  = 'nav.accent.v1';
+  var BG_KEY   = 'nav.bgimg.v1';
+  var BRAND_KEY = 'nav.brand.v1';
+
+  // 主页里这些值都是 JSON.stringify 之后存进去的，读的时候要解一次
+  function read(key){
+    try {
+      var raw = localStorage.getItem(key);
+      if (raw === null) return null;
+      try { return JSON.parse(raw); } catch (e) { return raw; }
+    } catch (e) { return null; }
+  }
+
+  var pref = read(PREF_KEY);
+  if (pref !== 'light' && pref !== 'dark') pref = 'auto';
+
+  var ACCENTS = ['indigo','teal','coral','plum','rose'];
+  var accent = read(ACC_KEY);
+  if (ACCENTS.indexOf(accent) < 0) accent = '';
+  if (accent) document.documentElement.dataset.accent = accent;
+
+  // 背景图：主页是把它写成 --bgimg 变量再靠 data-bg=image 生效，这里照抄
+  var bg = read(BG_KEY);
+  if (typeof bg === 'string' && bg) {
+    document.documentElement.style.setProperty('--bgimg', 'url("' + bg.replace(/"/g, '%22') + '")');
+    document.body.dataset.bg = 'image';
+  }
+
+  // 左上角那个方块：跟主页的标志保持一致
+  var brand = read(BRAND_KEY);
+  if (brand && typeof brand === 'object' && brand.mark) {
+    document.getElementById('markBox').textContent = String(brand.mark).slice(0, 2);
+  }
+
+  var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function isDark(){
+    if (pref === 'dark') return true;
+    if (pref === 'light') return false;
+    return !!(mq && mq.matches);
+  }
+  function paint(){
+    var dark = isDark();
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    document.getElementById('themeLabel').textContent = dark ? '浅色' : '深色';
+  }
+  paint();
+
+  // 跟随系统时，系统换色要跟着换（老 Safari 只有 addListener）
+  if (mq) {
+    var onMq = function(){ if (pref === 'auto') paint(); };
+    if (mq.addEventListener) mq.addEventListener('change', onMq);
+    else if (mq.addListener) mq.addListener(onMq);
+  }
+
+  // 点一下只改这份手册的显示，同时把偏好写回去 —— 主页也一起变
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    pref = isDark() ? 'light' : 'dark';
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(pref)); } catch (e) {}
+    paint();
+  });
+
+  /* ---------- 目录高亮：滚到哪一节就点亮哪一条 ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var secs  = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  function mark(){
+    var y = window.scrollY + 120, cur = 0;
+    for (var i = 0; i < secs.length; i++) if (secs[i].offsetTop <= y) cur = i;
+    links.forEach(function(a, i){ a.classList.toggle('on', i === cur); });
+  }
+  window.addEventListener('scroll', mark, { passive: true });
+  window.addEventListener('resize', mark);
+  mark();
+
+  /* 点目录跳转：自己滚，别用原生平滑 —— 距离一长浏览器要么瞬移要么快得看不见 */
+  links.forEach(function(a){
+    a.addEventListener('click', function(e){
+      var el = document.querySelector(a.getAttribute('href'));
+      if (!el) return;
+      e.preventDefault();
+      var from = window.scrollY, to = el.getBoundingClientRect().top + window.scrollY - 16;
+      var dur = Math.min(620, 320 + Math.abs(to - from) * 0.05), t0 = performance.now();
+      (function step(now){
+        var p = Math.min(1, (now - t0) / dur);
+        window.scrollTo(0, from + (to - from) * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(step);
+      })(t0);
+      history.replaceState(null, '', a.getAttribute('href'));
+    });
+  });
+})();
+</script>
+</body>
+</html>
