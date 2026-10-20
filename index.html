@@ -1128,52 +1128,69 @@ body.top-dragging .top-item:hover{background:transparent;}
 /* 两种新的右键菜单（R22）。跟链接菜单 .ctxmenu 同一套外观，只是排在它下面一层：
    万一两个菜单同时被叫起来（一个还没关、另一个又开了），至少在视觉上有个先后。 */
 #catMenu,#fixMenu,#sceneMenu{z-index:68;}
-/* ---- R46：管理台里不再弹居中窗，改成贴右边那条编辑栏 ----
-   触发：openMask() 在管理台里给那个 .mask 加一个 .docked。内容一个字符都没动。
-   ★ 为什么是「给 .mask 换个定位」而不是把 .dialog 搬进右边栏：
-     搬节点会把焦点、滚动位置、已经绑好的事件一起搅乱，而这十几套表单里恰好全是这些。
+/* ---- R46 / R54：管理台里点工具，编辑器**就占住中间那块大区域** ----
+   触发还是 openMask() 在管理台里给那个 .mask 加 .docked —— 内容一个字符都没动。
+   ★ 走过三版：R46「贴右边那条 460 的通顶栏」→ R54 第一版「中间一张 460 的卡片」→
+     R54 定稿「**铺满中栏**」。
+     小宝两次说的都是同一件事，第二遍才说明白：「我点击左边的按钮，它对应的编辑框
+     就是右边的红框这里来编辑啊」—— 红框圈的是整个中栏（侧栏右缘到视口右边），
+     不是中栏里的一小块。所以不是「居中放多大」的问题，是**它本来就该占满这块**。
+   ★ 为什么不把 .dialog 搬进中栏：搬节点会把焦点、滚动位置、已经绑好的事件一起搅乱，
+     而这十几套表单里恰好全是这些 —— 换个定位就够了。
    ★ 为什么整段都挂在 body.admin-on 底下：万一视图切走了（或者加载时就是导航页），
-     .docked 自动失效、退回居中弹窗 —— 不会留下一条永远贴右边、关不掉的幽灵。
-   ★ 只把 mask 那一层做成「透明 + 不吃点击」：底下的表格照样能点，
-     这就是「就地编辑」跟「弹窗」的差别 —— 弹窗是挡住你，编辑栏是让在边上。 */
+     .docked 自动失效、退回整屏居中的弹窗 —— 不会留下一个永远关不掉的幽灵。
+   ★ 遮罩仍然是「透明 + 不吃点击」：左栏那十颗工具还能换着直接点，换一颗就是换一块编辑器。
+   ★ 四边留 12，左边再让开侧栏（--ad-sidew），底下留 76 给浮底胶囊 —— 胶囊顶在 834
+     （900 的屏），卡片底 824，正好不打架。 */
 body.admin-on .mask.docked{
   background:transparent;pointer-events:none;
   -webkit-backdrop-filter:none;backdrop-filter:none;
-  display:block;padding:0;
+  display:grid;place-items:stretch;
+  padding:12px 12px 76px calc(var(--ad-sidew) + 12px);
 }
 body.admin-on .mask.docked > .dialog{
-  position:fixed;top:0;right:0;bottom:0;
+  position:relative;
   /* ★ max-width 必须 !important：备份 / 体检这几个弹窗在 HTML 里写了行内
-     style="max-width:440px"，行内样式压得过样式表 —— 不收掉的话这几条编辑栏
+     style="max-width:440px"，行内样式压得过样式表 —— 不收掉的话这几块编辑器
      会比别的窄一截，摆在一起看就像没对齐。 */
-  width:min(var(--ad-dockw),100%);max-width:none!important;max-height:none;
-  margin:0;border-radius:0;border:0;border-left:1px solid var(--line);
-  box-shadow:-34px 0 72px -42px rgba(0,0,0,.55);
+  width:auto;max-width:none!important;max-height:none;
+  margin:0;border-radius:18px;border:1px solid var(--line-strong);
+  box-shadow:0 38px 80px -36px rgba(0,0,0,.46), 0 4px 16px -8px rgba(0,0,0,.16);
   overflow-y:auto;overscroll-behavior:contain;
   pointer-events:auto;
-  /* 竖排：内容短的时候让底下那排按钮落到底边，别在半截处飘着 */
+  /* 竖排：内容短的时候让底下那排按钮落到卡片底边，别在半截处飘着 */
   display:flex;flex-direction:column;
-  animation:adSlideIn .28s cubic-bezier(.2,.9,.2,1);
+  animation:adPopIn .2s cubic-bezier(.2,.9,.2,1);
 }
 body.admin-on .mask.docked > .dialog > .dialog-btns:last-of-type{margin-top:auto;}
+/* ★ 编辑器铺满了，里面的**内容**不能跟着拉成一条：这十几套表单原本是按 460 设计的，
+   往 1164 里一塞，输入框和「完成」按钮会横贯整屏，看着像一张被抻开的纸。
+   所以内容统一收到 860 并居中 —— 横向由 `align-self` 管、纵向那条 `margin-top:auto`
+   还留着（它负责把按钮压到底边），两者不打架。
+   `:not(.ad-dockx)` 是必须的：那颗 ✕ 自己靠 `align-self:flex-end` 定位，别把它拉进来。 */
+body.admin-on .mask.docked > .dialog > *:not(.ad-dockx){
+  width:100%;max-width:860px;align-self:center;
+}
 @media (prefers-reduced-motion:reduce){body.admin-on .mask.docked > .dialog{animation:none;}}
-@keyframes adSlideIn{from{opacity:0;transform:translateX(30px);}to{opacity:1;transform:none;}}
-/* ★ 编辑栏一开，能看的内容区就只剩左边那一块。浮底那条胶囊要是还按整屏居中，
-   1280 上它最右边那颗「+」正好被压在编辑栏底下（让位前先问它横向覆盖到哪 ——
-   这里答案是 1280-460=820，而胶囊右缘在 833）。所以让它跟着内容区重新居中。
-   ★ 1020 以下不动：那档编辑栏本来就近乎整屏，挪了也是白挪。 */
-body.admin-on:has(.mask.docked) .tabbar{left:calc((100vw - var(--ad-dockw)) / 2);}
-.tabbar{transition:left .26s cubic-bezier(.2,.9,.2,1);}   /* 让它「挪过去」，不是「跳过去」 */
-@media (max-width:1020px){body.admin-on:has(.mask.docked) .tabbar{left:50%;}}
-/* 手机上编辑栏就是整屏一张纸：底边留出手势区的余量，免得「完成」贴着屏幕边 */
+@keyframes adPopIn{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:none;}}
+/* 手机上（≤1020 侧栏已经收成顶上一条）不用再让侧栏的位，四边留一样多 */
+@media (max-width:1020px){
+  body.admin-on .mask.docked{padding:12px 12px 84px;}
+}
+/* 手机上底下要留出手势区的余量，否则「取消 / 保存」会被压到屏幕外 */
 @media (max-width:620px){
-  body.admin-on .mask.docked > .dialog{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));}
+  body.admin-on .mask.docked > .dialog{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));}
 }
 /* 标题右边留出那颗 ✕ 的地方 */
 .mask.docked > .dialog > h3{padding-right:36px;}
-/* 关掉那一颗：有的表单一长，底下「取消 / 完成」得滚到底才看得见 */
+/* 关掉那一颗：有的表单一长，底下「取消 / 完成」得滚到底才看得见。
+   ★ 三条一起才「钉在卡片右上角」：`order:-1` 让它排到 h3 前面（它是被 append 在最后的，
+     不加就是「贴在卡片底部」——第一版就这么错的）；`sticky` 而不是 `absolute`，
+     因为卡片自己会滚（overflow-y:auto），absolute 会跟着内容滚走；
+     负的 margin-bottom 把 30px 的占位还回去，不让标题平白多出一行空。 */
 .mask.docked .ad-dockx{
-  position:fixed;top:14px;right:14px;z-index:2;
+  position:sticky;top:1px;z-index:3;
+  order:-1;align-self:flex-end;margin:-8px -8px -30px auto;
   width:30px;height:30px;border-radius:9px;
   display:grid;place-items:center;
   font-size:16px;line-height:1;color:var(--muted);
@@ -1181,18 +1198,18 @@ body.admin-on:has(.mask.docked) .tabbar{left:calc((100vw - var(--ad-dockw)) / 2)
 }
 .mask.docked .ad-dockx:hover{background:var(--surface);color:var(--text);}
 
-/* ---- R52：写文章也走这条编辑栏，但要更宽 ----
-   小宝：「文章编辑在后台操作吧」。原来那个居中的大弹窗盖在文章页上，
-   一是不该在前台改内容，二是 760 的居中窗把整页糊成一片。
-   460 那条栏是给「一行两格的表单」用的；写文章要的是「一行字」，
-   620 才不至于每 20 个字就折行（再宽就不是「在边上」了）。 */
-body.admin-on .mask.docked#postMask > .dialog{width:min(620px,100%);}
-body.admin-on:has(#postMask.docked) .tabbar{left:calc((100vw - 620px) / 2);}
-@media (max-width:1020px){body.admin-on:has(#postMask.docked) .tabbar{left:50%;}}
+/* ---- R52 / R54：写文章那块也是满的（不再单独要 620 / 980）----
+   小宝：「文章编辑在后台操作吧」（R52）→「点击左边的按钮，它对应的编辑框就是右边的
+   红框这里来编辑」（R54）。所以写文章也占满中栏，跟别的工具一个待遇。
+   ★ 宽度不再单独开一条：R54 把卡片铺满中栏之后，所有表单都收在 860 里居中，
+     「正文自己宽一档（980）」那条只会让正文框比标题框各凸出 40px —— 同一条竖线才对。
+   ★ 也**不要**给按钮写 `margin-top:0`（R52 那条已删）：那是给「正文不吃高度」擦屁股的，
+     现在 `.ps-bodyfield` 自己 flex:1 就把空闲高度吃干净了，`auto` 根本轮不到 ——
+     实测把 0 改回 auto，正文框高度一个像素都不变（probe_r52 的 L 刀砍不红才发现）。 */
 
 /* 正文框吃掉剩下的高度。
-   ★ 编辑栏是「通到底」的一条，正文要是还锁在 210 高，写长文就得一边敲一边滚；
-     让它 flex:1 之后，屏幕多高就写多高，底下那排「取消 / 保存」永远贴着底边。 */
+   ★ 原来编辑栏是「通到底」的一条，正文要是还锁在 210 高，写长文就得一边敲一边滚；
+     现在是满高的一块，同样让正文 flex:1，底下那排「取消 / 保存」永远贴着底边。 */
 body.admin-on .mask.docked#postMask .ps-bodyfield{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;}
 body.admin-on .mask.docked#postMask .ps-ta{flex:1 1 auto;min-height:200px;}
 body.admin-on .mask.docked#postMask .ps-preview{flex:1 1 auto;max-height:none;overflow:auto;}
@@ -2512,7 +2529,7 @@ body.admin-on .app{display:none;}
 body.admin-on .admin{display:block;min-height:100vh;}
 /* ★ R45：管理台是「应用」，不是「长网页」—— 整页不滚，滚的是侧栏和主区。
    好处是表格能把剩下的高度吃满；坏处是手机上一屏装不下，所以 1020 以下整条规则还原。 */
-body.admin-on{overflow:hidden;--ad-dockw:460px;}   /* R46：右侧编辑栏的宽度，跟 .tabbar 让位共用 */
+body.admin-on{overflow:hidden;--ad-dockw:460px;--ad-sidew:252px;}   /* R46/R54：面板宽度、左栏宽度（面板要在内容区里居中，得知道侧栏占多宽） */
 body.admin-on .bulkbar{display:none;}
 body.guest .ad-w{display:none !important;}
 body.guest #adBulk{display:none !important;}
@@ -3813,7 +3830,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
             <span class="enter-hint">Esc</span>
           </label>
           <div class="search-meta" id="psMeta">—</div>
-          <button class="text-btn ps-new" id="psNew" type="button" title="在管理台里写（右侧编辑栏）">
+          <button class="text-btn ps-new" id="psNew" type="button" title="在管理台里写（中间那块编辑区）">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
             写一篇
           </button>
@@ -3828,7 +3845,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
     <div class="ps-empty" id="psEmpty" hidden>
       <p class="ps-empty-t">还没有文章</p>
       <p class="ps-empty-s">写第一篇吧 —— 支持标题、列表、代码块、表格和图片，语法见下。</p>
-      <button class="btn btn-primary" id="psEmptyNew" type="button" title="在管理台里写（右侧编辑栏）">写第一篇</button>
+      <button class="btn btn-primary" id="psEmptyNew" type="button" title="在管理台里写（中间那块编辑区）">写第一篇</button>
     </div>
   </div>
 
@@ -3839,7 +3856,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
         全部文章
       </button>
       <div class="ps-readacts" id="psReadActs">
-        <button class="text-btn" id="psEdit" type="button" title="在管理台里改（右侧编辑栏）">编辑</button>
+        <button class="text-btn" id="psEdit" type="button" title="在管理台里改（中间那块编辑区）">编辑</button>
         <button class="text-btn" id="psDel" type="button">删除</button>
       </div>
     </div>
@@ -3986,7 +4003,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
           <button class="ad-tool ad-w" type="button" data-tool="data" title="导出备份 / 恢复 / 清空"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="4.4" width="16.8" height="4.4" rx="1.5"/><path d="M5.2 8.8v9.2A1.6 1.6 0 0 0 6.8 19.6h10.4a1.6 1.6 0 0 0 1.6-1.6V8.8"/><path d="M10 12.4h4"/></svg></i>备份恢复</button>
           <button class="ad-tool ad-w" type="button" data-tool="cloud" title="同步到 GitHub Gist"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 18.6h9.1a3.9 3.9 0 0 0 .5-7.8 5.3 5.3 0 0 0-10-1.1 4.1 4.1 0 0 0 .4 8.9z"/></svg></i>云同步</button>
           <button class="ad-tool ad-w" type="button" data-tool="sharenew" title="写一条时光轨迹"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 19.6h4L19 9a2.1 2.1 0 0 0-3-3L5.4 16.6z"/><path d="m14.6 6.4 3 3"/></svg></i>写一条</button>
-          <!-- ★ R52：写文章也归后台。入口就在这儿（右侧编辑栏），文章页那边只读。 -->
+          <!-- ★ R52：写文章也归后台。入口就在这儿（中间那块编辑区），文章页那边只读。 -->
           <button class="ad-tool ad-w" type="button" data-tool="postnew" title="写一篇 / 改一篇（Markdown）"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h8.2L19 8.3v12.2H6z"/><path d="M13.8 3.6v4.9H19"/><path d="M9 13h6M9 16.4h4"/></svg></i>写文章</button>
           <button class="ad-tool ad-w" type="button" data-tool="home" title="首页文案 / 二维码"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.6 8h8.8M18.6 8h.8M4.6 16h2.8M13 16h6.4"/><circle cx="16" cy="8" r="2.1"/><circle cx="10.2" cy="16" r="2.1"/></svg></i>首页设置</button>
           <button class="ad-tool ad-w" type="button" data-tool="fix" title="分享页顶部的固定链接"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15.4 3.8 4.8 4.8-2.9 1.1-4.6 4.6.3 2.9-4.9-4.9 2.9.3L15 8z"/><path d="M7.4 16.6 4 20"/></svg></i>固定链接</button>
@@ -4874,7 +4891,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               <h3>四、管理台（标签栏的「管理」）</h3>
               <p>管理台的左边是一条<strong>通到底的侧栏</strong>：上面是站名，中间是「页面」（导航链接 / 首页 / 分享 / 文章），下面「工具」那一组就是平时散在各处的入口 —— 添加链接、导入、体检、分类、备份 / 恢复、云同步、写一条、写文章、首页、固定链接，一处就能点开，不用再跑回导航页。</p>
               <p>表格里<strong>改一条链接是「就地改」的</strong>：点行尾那颗 <strong>✎</strong>，这一行的分类 / 名字 / 网址三格当场变成输入框（分类是个下拉，改它等于整条搬家），改完按 <kbd>Enter</kbd> 或那颗 <strong>✓</strong> 存，按 <kbd>Esc</kbd> 或 <strong>×</strong> 放弃 —— 眼睛不用离开这一行，也不用先去右边再回来。</p>
-              <p>别的入口（<strong>添加链接</strong>、<strong>导入书签</strong>、<strong>备份 / 恢复</strong>、<strong>首页设置</strong>、<strong>写文章</strong>……）点开之后<strong>不弹居中的窗</strong>：面板贴在右边，表格还留在左边 —— 填完、关掉、接着点下一条，不用在两个窗口之间来回跳。<kbd>Esc</kbd> 先收面板，再按一次才回导航页。手机上这条面板就是一整屏。</p>
+              <p>别的入口（<strong>添加链接</strong>、<strong>导入书签</strong>、<strong>备份 / 恢复</strong>、<strong>首页设置</strong>、<strong>写文章</strong>……）点开之后<strong>不弹居中的窗</strong>，而是<strong>占住中间那一整块地方</strong>：左边那条工具侧栏原地不动（想换一个工具，点一下左边那颗就切过去），右边是屏幕边，四边各留 12 的呼吸。宽是宽了，但面板里的东西不会跟着拉成一条 —— 内容收在 860 宽里居中放，屏幕再宽也是一行读得下去的字。<kbd>Esc</kbd> 先收面板，再按一次才回导航页。手机上就是四边各留 12 的整屏一张纸。</p>
               <p>批量整理还有一张<strong>表格</strong>：点标签栏最右边那颗「管理」，就能看到<strong>所有分类的全部链接</strong> —— 分类、名称、网址、点过几次、最后一次打开是什么时候、标签、有没有置顶（屏幕够宽时还会多一列「添加时间」）。链接多的时候表格按页翻，右下角可以选<strong>每页 50 / 100 / 500 / 全部</strong>。</p>
               <ul>
                 <li><strong>筛</strong>：上面那排能按分类、按状态筛（从未点击 / 30 天没打开 / 已置顶 / 重复网址 / 没标签），也能直接搜名字、网址、标签。</li>
@@ -5222,18 +5239,18 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
                 <li>代码块顶上会标出语言（<code>```js</code> 写的那段就标 <code>js</code>），一眼知道这是什么；表格<strong>隔行浅底</strong>、引用左边一根<strong>强调色实条</strong>，长文里靠这些分层次。</li>
               </ul>
 
-              <h3>写：在管理台右边那条编辑栏里，写和预览两态</h3>
-              <p>文章是<strong>内容</strong>，所以写和改都归<strong>后台</strong>（见 <a data-help="s8">08 · 四、管理台</a>）。在文章页点 <strong>写一篇</strong> / <strong>编辑</strong>，会把你<strong>带到管理台</strong>，面板从右边滑进来 —— 不再是一个盖在文章页上的大弹窗。管理台工具箱里那颗 <strong>写文章</strong> 也能直接开。</p>
+              <h3>写：在管理台中间那块编辑区里，写和预览两态</h3>
+              <p>文章是<strong>内容</strong>，所以写和改都归<strong>后台</strong>（见 <a data-help="s8">08 · 四、管理台</a>）。在文章页点 <strong>写一篇</strong> / <strong>编辑</strong>，会把你<strong>带到管理台</strong>，编辑区就在中间铺开 —— 不再是一个盖在文章页上的大弹窗。管理台工具箱里那颗 <strong>写文章</strong> 也能直接开。</p>
               <ul>
                 <li>点 <strong>写一篇</strong>（只读状态下第一次点会先要管理员密码，跟改链接是同一道门）。<strong>没解锁的人不会被顺路送进后台</strong>：先问密码，密码对了那一下才接着把编辑栏打开。</li>
-                <li>编辑栏是<strong>贴着右边、上下通到底的一条</strong>（宽 620）。左边那张表还看得见、也点得动 —— 遮罩是透明的、不吃点击，这就是「在边上改」和「挡住你」的区别。手机上它铺满整屏。</li>
+                <li>它占住<strong>管理台中间那一整块</strong>（左边那条工具侧栏照样看得见、点得动），四边各留 12；别的表单内容收在 860 宽里，<strong>写文章这块更宽一档（980）</strong> —— 一行能多放十来个字，不会每二十个字折一次行。遮罩是透明的、不吃点击，所以想换个工具直接点左边那颗就行。手机上铺满整屏。</li>
                 <li>四样东西：<strong>标题</strong>（必填，最多 60 字）、<strong>摘要</strong>（留空就自动从正文里挑第一段，去掉 <code>#</code> <code>**</code> 这些标记）、<strong>标签</strong>（逗号分隔，最多 6 个）、<strong>正文</strong>（Markdown）。</li>
                 <li>正文框<strong>吃掉剩下的高度</strong>：屏幕多高就能写多高，底下那颗 <strong>保存</strong> 永远贴着底边 —— 写长文不用一边敲一边滚。</li>
                 <li>正文框右上角有 <strong>写 / 预览</strong> 两个小按钮。预览用的是<strong>同一个渲染器</strong>，所以「预览看到什么样，存下来就是什么样」；预览开着的时候继续打字，它跟着变。切到预览时那块地方整个交给预览，长文在框里自己滚。</li>
                 <li><strong>标题空着不让存</strong>（会提示一句，框还留在那儿让你填）。</li>
                 <li>存完<strong>留在管理台</strong> —— 一次连着写两篇的人不该被踹回前台。想立刻看效果，点提示条上那颗 <strong>去读</strong>，直接落到刚写那篇的阅读态。改一篇也一样，改完还在这儿。</li>
                 <li>长文写到底不想找鼠标：<kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 直接保存。</li>
-                <li>要关掉：右上角那颗 <strong>✕</strong>、底下的 <strong>取消</strong>、或者按一下 <kbd>Esc</kbd>（只关编辑栏，人还留在管理台）。</li>
+                <li>要关掉：右上角那颗 <strong>✕</strong>、底下的 <strong>取消</strong>、或者按一下 <kbd>Esc</kbd>（只收这块编辑区，人还留在管理台）。</li>
               </ul>
 
               <h3>写的时候有哪些快捷键</h3>
@@ -5246,7 +5263,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
                 <tr><td><kbd>⇧</kbd><kbd>⌘</kbd> + <kbd>.</kbd> / <kbd>8</kbd> / <kbd>7</kbd></td><td>引用 / 无序列表 / 有序列表（Windows 上是 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 同一个键）</td></tr>
                 <tr><td><kbd>Tab</kbd> / <kbd>⇧</kbd><kbd>Tab</kbd></td><td>缩进 / 退一格（每次两个空格；选了几行就整段一起挪）</td></tr>
                 <tr><td><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>保存</td></tr>
-                <tr><td><kbd>Esc</kbd></td><td>收起编辑栏（人还在管理台）</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>收起编辑区（人还在管理台）</td></tr>
               </table>
               <ul>
                 <li><strong>有选区就包住它</strong>；没选区就插一对空标记、<strong>并把中间那个占位词选中</strong>，接着敲字直接替换 —— 不用先删掉它。</li>
@@ -5276,7 +5293,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
 
               <h3>改 / 删</h3>
               <ul>
-                <li>读到某篇时右上角 <strong>编辑</strong>：同样把你带回管理台那条编辑栏，里面带着旧内容，改完还是那一篇（不会又存出一篇新的）。</li>
+                <li>读到某篇时右上角 <strong>编辑</strong>：同样把你带回管理台那块编辑区，里面带着旧内容，改完还是那一篇（不会又存出一篇新的）。</li>
                 <li><strong>删除会先问一句</strong>，并且<strong>先存一份快照</strong>：点错了能去「备份 / 恢复 → 自动快照」里挑「删文章前」那份退回来。</li>
               </ul>
 
@@ -5289,7 +5306,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               </ul>
 
               <h3>手机上</h3>
-              <p>卡片改成<strong>一列</strong>，字号降一档；顶部「共 N 篇」让位，<strong>写一篇</strong>留在搜索框同一行；底部给浮动标签栏留了空，最后一张卡片不会被压住。写文章的编辑栏在手机上是<strong>整屏一张纸</strong>，十颗快捷键按钮照样排得下。</p>
+              <p>卡片改成<strong>一列</strong>，字号降一档；顶部「共 N 篇」让位，<strong>写一篇</strong>留在搜索框同一行；底部给浮动标签栏留了空，最后一张卡片不会被压住。写文章的编辑区在手机上是<strong>四边各留 12 的整屏一张纸</strong>，十颗快捷键按钮照样排得下。</p>
             </section>
 <!-- HELP-DOC-END -->
       </div>
@@ -11789,7 +11806,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     /* ★ R46：管理台的 Esc 归它自己那条管（见「Esc：管理台」）。这里要是也跑一遍，
-       它会先把右侧编辑栏收掉，admin 那条紧接着发现「没弹窗了」就把人踢回导航页 ——
+       它会先把中间那块编辑区收掉，admin 那条紧接着发现「没弹窗了」就把人踢回导航页 ——
        等于「关一个面板，人也跟着被赶走」。 */
     if (curView === 'admin') return;
     /* R22：三个右键菜单（链接 / 分类 / 固定栏）一起收 —— 以前这里只 closeCtxMenu()，
@@ -12817,7 +12834,7 @@ function setView(v){
      反正再进去时 shareOpen() 会重画一遍，不会少东西。
      ★ 只清时间轴容器，**不清搜索词**：搜到一半退出去、回来看还是那批，
        比「一进来发现被清空了、还得重敲一遍」顺手。 */
-  /* ★ R46：离开管理台就把右侧编辑栏收掉 —— 它是「这一页的边上」，不是全局弹窗；
+  /* ★ R46：离开管理台就把中间那块编辑区收掉 —— 它是「这一页中间」，不是全局弹窗；
      不收拾的话翻到别的页它还在（.docked 只在 admin-on 下生效，会当场变回居中窗，
      看着像凭空蹦出一个弹窗）。 */
   if (was === 'admin' && v !== 'admin' && document.querySelector('.mask.docked')) closeAllMasks();
