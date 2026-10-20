@@ -1128,58 +1128,68 @@ body.top-dragging .top-item:hover{background:transparent;}
 /* 两种新的右键菜单（R22）。跟链接菜单 .ctxmenu 同一套外观，只是排在它下面一层：
    万一两个菜单同时被叫起来（一个还没关、另一个又开了），至少在视觉上有个先后。 */
 #catMenu,#fixMenu,#sceneMenu{z-index:68;}
-/* ---- R46 / R54：管理台里点工具，编辑器**就占住中间那块大区域** ----
+/* ---- R46 / R54 / R55：管理台里点工具，编辑器**就等于「中栏换个内容」** ----
    触发还是 openMask() 在管理台里给那个 .mask 加 .docked —— 内容一个字符都没动。
-   ★ 走过三版：R46「贴右边那条 460 的通顶栏」→ R54 第一版「中间一张 460 的卡片」→
-     R54 定稿「**铺满中栏**」。
-     小宝两次说的都是同一件事，第二遍才说明白：「我点击左边的按钮，它对应的编辑框
-     就是右边的红框这里来编辑啊」—— 红框圈的是整个中栏（侧栏右缘到视口右边），
-     不是中栏里的一小块。所以不是「居中放多大」的问题，是**它本来就该占满这块**。
-   ★ 为什么不把 .dialog 搬进中栏：搬节点会把焦点、滚动位置、已经绑好的事件一起搅乱，
+   ★ 三版演进：R46「贴右边那条 460 的通顶栏」→ R54「铺满中栏的一张卡片」→
+     R55「**跟左边那块 pane 同框**」。
+     小宝最后一句才把话钉死：「左边那三个（导航链接 / 首页 / 分享页）点击后是如何的，
+     那么工具那里下面的所有点击后就是怎么样的」—— 点「分类」不该像「弹出一块面板」，
+     而该像「中栏那块内容换成了分类」。所以**位置、圆角、描边、阴影、内边距统统照抄
+     .ad-pane，对齐到同一个框**：
+       上 = 那块可见 pane 的顶边（顶栏底 + .ad-body 的 padding-top；
+            只读模式还多一条提示条，所以不能拿顶栏高度算，得量 pane → --ad-docktop）；
+       左 = 侧栏右缘 + 26（.ad-body 的 padding-left）；
+       右 = 视口 − 26；下 = 视口 − 76（给浮底胶囊让的位，跟 .ad-body 一个数）。
+   ★ 为什么不把 .dialog 搬进 .ad-body：搬节点会把焦点、滚动位置、已经绑好的事件一起搅乱，
      而这十几套表单里恰好全是这些 —— 换个定位就够了。
-   ★ 为什么整段都挂在 body.admin-on 底下：万一视图切走了（或者加载时就是导航页），
-     .docked 自动失效、退回整屏居中的弹窗 —— 不会留下一个永远关不掉的幽灵。
-   ★ 遮罩仍然是「透明 + 不吃点击」：左栏那十颗工具还能换着直接点，换一颗就是换一块编辑器。
-   ★ 四边留 12，左边再让开侧栏（--ad-sidew），底下留 76 给浮底胶囊 —— 胶囊顶在 834
-     （900 的屏），卡片底 824，正好不打架。 */
+   ★ 为什么整段都挂在 body.admin-on 底下：视图切走时 .docked 自动失效、退回整屏居中的弹窗。
+   ★ 遮罩仍然是「透明 + 不吃点击」：左栏那十颗工具还能换着直接点。 */
 body.admin-on .mask.docked{
   background:transparent;pointer-events:none;
   -webkit-backdrop-filter:none;backdrop-filter:none;
   display:grid;place-items:stretch;
-  padding:12px 12px 76px calc(var(--ad-sidew) + 12px);
+  padding:var(--ad-docktop,96px) 26px 76px calc(var(--ad-sidew) + 26px);
 }
 body.admin-on .mask.docked > .dialog{
   position:relative;
   /* ★ max-width 必须 !important：备份 / 体检这几个弹窗在 HTML 里写了行内
-     style="max-width:440px"，行内样式压得过样式表 —— 不收掉的话这几块编辑器
+     style="max-width:440px"，行内样式压得过样式表 —— 不收掉的话这几块
      会比别的窄一截，摆在一起看就像没对齐。 */
   width:auto;max-width:none!important;max-height:none;
-  margin:0;border-radius:18px;border:1px solid var(--line-strong);
-  box-shadow:0 38px 80px -36px rgba(0,0,0,.46), 0 4px 16px -8px rgba(0,0,0,.16);
+  margin:0;
+  /* ★ 下面这六样就是「跟 .ad-pane 同框」的全部内容（照抄 .ad-pane / .ad-pane-b），
+     少一样都会露馅：圆角 14、1px 描边、--card 底、同一层阴影、18 的内边距、没有动画。 */
+  border-radius:14px;border:1px solid var(--line);
+  background:var(--card);box-shadow:var(--shadow);
+  padding:18px;
   overflow-y:auto;overscroll-behavior:contain;
   pointer-events:auto;
   /* 竖排：内容短的时候让底下那排按钮落到卡片底边，别在半截处飘着 */
   display:flex;flex-direction:column;
-  animation:adPopIn .2s cubic-bezier(.2,.9,.2,1);
+  animation:none;                 /* pane 切换是瞬间的，这里也不该有弹入动画 */
 }
 body.admin-on .mask.docked > .dialog > .dialog-btns:last-of-type{margin-top:auto;}
-/* ★ 编辑器铺满了，里面的**内容**不能跟着拉成一条：这十几套表单原本是按 460 设计的，
-   往 1164 里一塞，输入框和「完成」按钮会横贯整屏，看着像一张被抻开的纸。
-   所以内容统一收到 860 并居中 —— 横向由 `align-self` 管、纵向那条 `margin-top:auto`
-   还留着（它负责把按钮压到底边），两者不打架。
-   `:not(.ad-dockx)` 是必须的：那颗 ✕ 自己靠 `align-self:flex-end` 定位，别把它拉进来。 */
+/* ★ 卡片里那十几套表单原本是按 460 设计的，直接铺到 1100 上，输入框和「完成」
+   按钮会横贯整屏。收在 860 —— 跟「首页」那块 pane 里的表单（880）是一个意思：
+   **靠左、不居中**，因为 pane 里的东西本来都是从左边起头的（居中反而像张浮窗）。 */
 body.admin-on .mask.docked > .dialog > *:not(.ad-dockx){
-  width:100%;max-width:860px;align-self:center;
+  width:100%;max-width:860px;
 }
-@media (prefers-reduced-motion:reduce){body.admin-on .mask.docked > .dialog{animation:none;}}
-@keyframes adPopIn{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:none;}}
-/* 手机上（≤1020 侧栏已经收成顶上一条）不用再让侧栏的位，四边留一样多 */
+/* 手机上（≤1020 侧栏已经折到顶上、整页可以滚）跟 .ad-body 的内边距同步。
+   ★ 底边不留缝：这一档是「一页长网页 + 浮底胶囊」，留 104 的话卡片底会被截在
+     半空、下面还露着一截表格（页面在滚、面板是 fixed 的，露出来那截很脏）。
+     所以卡片直接铺到视口底，做成一张「从 pane 顶上拉下来的整屏纸」——
+     ★ 代价是浮底胶囊被盖住；这不是死路：顶上那排（页面三颗 / 工具十颗）
+       和顶栏那颗「返回导航」都还在面板外面，右上角还有 ✕。 */
 @media (max-width:1020px){
-  body.admin-on .mask.docked{padding:12px 12px 84px;}
+  body.admin-on .mask.docked{padding:var(--ad-docktop,120px) 16px 0;}
+  body.admin-on .mask.docked > .dialog{
+    border-radius:14px 14px 0 0;
+    padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  }
 }
-/* 手机上底下要留出手势区的余量，否则「取消 / 保存」会被压到屏幕外 */
-@media (max-width:620px){
-  body.admin-on .mask.docked > .dialog{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));}
+@media (max-width:760px){
+  body.admin-on .mask.docked{padding:var(--ad-docktop,150px) 14px 0;}
 }
 /* 标题右边留出那颗 ✕ 的地方 */
 .mask.docked > .dialog > h3{padding-right:36px;}
@@ -2600,6 +2610,16 @@ body.guest #adBulk{display:none !important;}
   overflow:hidden;text-overflow:ellipsis;transition:background .14s,color .14s;
 }
 .ad-tool:hover{background:var(--accent-soft);color:var(--text);}
+/* ★ R55：工具里「正在中栏显示」的那一颗，跟上面「页面」那三颗同一套选中态（强调色实底）。
+   小宝：「左边那三个点击后是如何的，那么工具那里下面的所有点击后就是怎么样的」——
+   「如何」里就包含这一条：谁的内容在中栏里，左栏谁就亮。 */
+.ad-toolgrid .ad-tool.on,
+.ad-toolgrid .ad-tool.on:hover{
+  background:var(--accent) !important;
+  color:var(--bg) !important;
+  font-weight:600;
+}
+.ad-toolgrid .ad-tool.on i{opacity:1;}
 .ad-tool i{flex:none;width:16px;height:16px;display:grid;place-items:center;opacity:.8;}
 .ad-tool i svg{width:14px;height:14px;display:block;}
 .ad-tool:hover i{opacity:1;}
@@ -4891,7 +4911,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               <h3>四、管理台（标签栏的「管理」）</h3>
               <p>管理台的左边是一条<strong>通到底的侧栏</strong>：上面是站名，中间是「页面」（导航链接 / 首页 / 分享 / 文章），下面「工具」那一组就是平时散在各处的入口 —— 添加链接、导入、体检、分类、备份 / 恢复、云同步、写一条、写文章、首页、固定链接，一处就能点开，不用再跑回导航页。</p>
               <p>表格里<strong>改一条链接是「就地改」的</strong>：点行尾那颗 <strong>✎</strong>，这一行的分类 / 名字 / 网址三格当场变成输入框（分类是个下拉，改它等于整条搬家），改完按 <kbd>Enter</kbd> 或那颗 <strong>✓</strong> 存，按 <kbd>Esc</kbd> 或 <strong>×</strong> 放弃 —— 眼睛不用离开这一行，也不用先去右边再回来。</p>
-              <p>别的入口（<strong>添加链接</strong>、<strong>导入书签</strong>、<strong>备份 / 恢复</strong>、<strong>首页设置</strong>、<strong>写文章</strong>……）点开之后<strong>不弹居中的窗</strong>，而是<strong>占住中间那一整块地方</strong>：左边那条工具侧栏原地不动（想换一个工具，点一下左边那颗就切过去），右边是屏幕边，四边各留 12 的呼吸。宽是宽了，但面板里的东西不会跟着拉成一条 —— 内容收在 860 宽里居中放，屏幕再宽也是一行读得下去的字。<kbd>Esc</kbd> 先收面板，再按一次才回导航页。手机上就是四边各留 12 的整屏一张纸。</p>
+              <p>别的入口（<strong>添加链接</strong>、<strong>导入书签</strong>、<strong>备份 / 恢复</strong>、<strong>首页设置</strong>、<strong>写文章</strong>……）点开之后<strong>不弹窗、也不从旁边滑出来</strong>，而是<strong>把中栏那块内容整个换掉</strong> —— 跟点上面「导航链接 / 首页 / 分享页」是同一件事：左边那颗工具亮起来、右边那块地方换成它的内容，圆角、描边、边距都跟原来那张卡片<strong>严丝合缝地对齐</strong>，看起来就不是「浮上来一块」而是「换了一页」。<kbd>Esc</kbd> 先收面板，再按一次才回导航页；点上面「页面」那三颗里的任何一颗也会把面板收掉、直接翻过去。手机上它是一张从卡片顶上拉下来的整屏纸。</p>
               <p>批量整理还有一张<strong>表格</strong>：点标签栏最右边那颗「管理」，就能看到<strong>所有分类的全部链接</strong> —— 分类、名称、网址、点过几次、最后一次打开是什么时候、标签、有没有置顶（屏幕够宽时还会多一列「添加时间」）。链接多的时候表格按页翻，右下角可以选<strong>每页 50 / 100 / 500 / 全部</strong>。</p>
               <ul>
                 <li><strong>筛</strong>：上面那排能按分类、按状态筛（从未点击 / 30 天没打开 / 已置顶 / 重复网址 / 没标签），也能直接搜名字、网址、标签。</li>
@@ -5243,7 +5263,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               <p>文章是<strong>内容</strong>，所以写和改都归<strong>后台</strong>（见 <a data-help="s8">08 · 四、管理台</a>）。在文章页点 <strong>写一篇</strong> / <strong>编辑</strong>，会把你<strong>带到管理台</strong>，编辑区就在中间铺开 —— 不再是一个盖在文章页上的大弹窗。管理台工具箱里那颗 <strong>写文章</strong> 也能直接开。</p>
               <ul>
                 <li>点 <strong>写一篇</strong>（只读状态下第一次点会先要管理员密码，跟改链接是同一道门）。<strong>没解锁的人不会被顺路送进后台</strong>：先问密码，密码对了那一下才接着把编辑栏打开。</li>
-                <li>它占住<strong>管理台中间那一整块</strong>（左边那条工具侧栏照样看得见、点得动），四边各留 12；别的表单内容收在 860 宽里，<strong>写文章这块更宽一档（980）</strong> —— 一行能多放十来个字，不会每二十个字折一次行。遮罩是透明的、不吃点击，所以想换个工具直接点左边那颗就行。手机上铺满整屏。</li>
+                <li>它<strong>把中栏那块内容整个换掉</strong>（左边那条工具侧栏照样看得见、点得动，亮着的就是它），位置、圆角、描边、阴影跟原来那张卡片<strong>一模一样</strong> —— 跟点「导航链接 / 首页 / 分享页」是同一套观感。遮罩是透明的、不吃点击，所以想换个工具直接点左边那颗就行，换一颗就是换一块内容。手机上它是一张从卡片顶上拉下来的整屏纸（底下那颗浮动标签栏这时被盖住，用右上角 ✕ 或顶栏「返回导航」出来）。</li>
                 <li>四样东西：<strong>标题</strong>（必填，最多 60 字）、<strong>摘要</strong>（留空就自动从正文里挑第一段，去掉 <code>#</code> <code>**</code> 这些标记）、<strong>标签</strong>（逗号分隔，最多 6 个）、<strong>正文</strong>（Markdown）。</li>
                 <li>正文框<strong>吃掉剩下的高度</strong>：屏幕多高就能写多高，底下那颗 <strong>保存</strong> 永远贴着底边 —— 写长文不用一边敲一边滚。</li>
                 <li>正文框右上角有 <strong>写 / 预览</strong> 两个小按钮。预览用的是<strong>同一个渲染器</strong>，所以「预览看到什么样，存下来就是什么样」；预览开着的时候继续打字，它跟着变。切到预览时那块地方整个交给预览，长文在框里自己滚。</li>
@@ -5306,7 +5326,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               </ul>
 
               <h3>手机上</h3>
-              <p>卡片改成<strong>一列</strong>，字号降一档；顶部「共 N 篇」让位，<strong>写一篇</strong>留在搜索框同一行；底部给浮动标签栏留了空，最后一张卡片不会被压住。写文章的编辑区在手机上是<strong>四边各留 12 的整屏一张纸</strong>，十颗快捷键按钮照样排得下。</p>
+              <p>卡片改成<strong>一列</strong>，字号降一档；顶部「共 N 篇」让位，<strong>写一篇</strong>留在搜索框同一行；底部给浮动标签栏留了空，最后一张卡片不会被压住。写文章的编辑区在手机上是<strong>一张从卡片顶上拉下来的整屏纸</strong>，十颗快捷键按钮照样排得下。</p>
             </section>
 <!-- HELP-DOC-END -->
       </div>
@@ -8829,14 +8849,47 @@ $('#askMask').addEventListener('click', e => { if (e.target === $('#askMask')) a
 const AD_DOCKABLE = ['mask', 'importMask', 'moveMask', 'catMask', 'dataMask', 'cloudMask',
   'healthMask', 'svFixMask', 'svMetaMask', 'homeMask', 'shareMask', 'postMask'];
 /* ★ R52：postMask 也进白名单 —— 写文章改到后台做（文章页那边只读）。
-   它在管理台里就是右边那条 620 宽的编辑栏，正文框吃满剩余高度。 */
+   ★ R55：这张表还把「哪块面板 = 左栏哪颗工具」记下来了，用来点左栏那颗的选中态。
+     没有对上的（`moveMask` 批量移动、`svMetaMask` 分享页信息）就不亮 —— 它们本来
+     也不是从「工具」里点出来的。 */
+const AD_TOOL_MASK = {
+  mask:'add', importMask:'import', catMask:'cats', healthMask:'health', dataMask:'data',
+  cloudMask:'cloud', shareMask:'sharenew', postMask:'postnew', homeMask:'home', svFixMask:'fix'
+};
+
+/* ★ R55：工具面板要跟中栏那块 pane **同框**，而 pane 的顶边是会变的
+   （只读模式多一条提示条、手机上侧栏折成两行、字号跟着系统走）——
+   所以不写死，现量一次交给 CSS 的 --ad-docktop。
+   量的是**那块可见 pane 的顶边**，不是顶栏高度：中间还隔着 .ad-body 的 padding-top
+   和那条黄提示条。jsdom 里量出来是 0，那就退回 CSS 里那个默认值，不影响逻辑测试。 */
+function adSyncDock(){
+  if (!document.body.classList.contains('admin-on')) return;
+  const pane = [].slice.call(document.querySelectorAll('.ad-pbody')).filter(el => !el.hidden)[0];
+  const r = pane ? pane.getBoundingClientRect() : null;
+  const v = r && r.width ? Math.max(0, Math.round(r.top)) : 0;
+  if (v) document.documentElement.style.setProperty('--ad-docktop', v + 'px');
+}
+
+/* ★ R55：左栏的选中态只有一个来源 —— 「中栏现在显示的是谁」。
+   面板开着 → 亮那颗工具、三颗页面都不亮；面板没开 → 亮 adPaneCur 那颗。 */
+function adMarkSide(){
+  const d = document.querySelector('.mask.docked.show[data-ad-tool]');
+  const tool = d ? d.dataset.adTool : '';
+  $$('.ad-toolgrid .ad-tool').forEach(b => b.classList.toggle('on', b.dataset.tool === tool));
+  $$('#adTabs .ad-tab').forEach(b => b.classList.toggle('on', !tool && b.dataset.ad === adPaneCur));
+}
 
 function openMask(id){
   const m = typeof id === 'string' ? (id.charAt(0) === '#' ? $(id) : $('#' + id)) : id;
   if (!m) return;
   m.classList.add('show');
   if (curView !== 'admin' || AD_DOCKABLE.indexOf(m.id) < 0) return;
+  adSyncDock();                       /* ★ 先量好 pane 的顶边，再加 .docked，免得先跳到默认位置 */
   m.classList.add('docked');
+  /* 这块面板是左栏哪颗工具开的（没有就摘掉，别留着上一次的） */
+  const tl = AD_TOOL_MASK[m.id];
+  if (tl) m.dataset.adTool = tl; else delete m.dataset.adTool;
+  adMarkSide();
   /* 一颗常驻的 ✕：抽屉里的表单可能很长，底下的按钮要滚到底才看得见。
      只补一次，重复开同一个面板不会越堆越多。 */
   const box = m.querySelector('.dialog');
@@ -8860,8 +8913,10 @@ function closeAllMasks(){
   $$('.mask').forEach(m => {
     const was = m.classList.contains('docked');
     m.classList.remove('show'); m.classList.remove('docked');
+    delete m.dataset.adTool;          /* ★ R55：左栏那颗的选中态跟着一起收 */
     if (was){ const d = m.querySelector('.dialog'); if (d) d.setAttribute('aria-modal', 'true'); }
   });
+  adMarkSide();
   /* ★ 顺手把还挂着的确认 Promise 结掉。不结的话，被别的弹窗顶掉之后那个 await
      永远等不到结果 —— 表现成「点了删除没反应」。 */
   if (askResolve) askClose(false);
@@ -11843,7 +11898,12 @@ window.addEventListener('scroll', () => { maybeAppend(); updateToTop(); }, { pas
 let __rz = null;
 window.addEventListener('resize', () => {
   clearTimeout(__rz);
-  __rz = setTimeout(() => { placeCats(); maybeAppend(); updateToTop(); }, 150);
+  __rz = setTimeout(() => {
+    placeCats(); maybeAppend(); updateToTop();
+    /* ★ R55：窗口一变，管理台那块 pane 的顶边就变了（侧栏折行、顶栏换行）——
+       面板开着的话重量一次，不然它会跟 pane 错开 */
+    if (document.querySelector('.mask.docked.show')) adSyncDock();
+  }, 150);
 });
 
 /* ============================================================
@@ -12272,11 +12332,14 @@ function renderAdminBulk(){
 let adPaneCur = 'nav';
 
 function adGo(pane){
+  /* ★ R55：点「页面」那三颗 = 换一块中栏内容，所以先把工具面板收掉 ——
+     不然面板会一直浮在刚换出来的 pane 上面，看着像「点了没反应」。 */
+  if (document.querySelector('.mask.docked.show')) closeAllMasks();
   adPaneCur = (pane === 'home' || pane === 'share') ? pane : 'nav';
-  $$('#adTabs .ad-tab').forEach(b => b.classList.toggle('on', b.dataset.ad === adPaneCur));
   $('#adPaneNav').hidden = adPaneCur !== 'nav';
   $('#adPaneHome').hidden = adPaneCur !== 'home';
   $('#adPaneShare').hidden = adPaneCur !== 'share';
+  adMarkSide();
   renderAdmin();
 }
 function renderAdHome(){
@@ -12416,7 +12479,9 @@ function renderAdmin(){
   const bn = $('#adBrandName');
   if (bn) bn.textContent = String(brand.name || BRAND_DEFAULT.name).trim() || BRAND_DEFAULT.name;
   if ($('#adTabs')){
-    $$('#adTabs .ad-tab').forEach(b => b.classList.toggle('on', b.dataset.ad === adPaneCur));
+    /* ★ R55：选中态改由 adMarkSide() 一处算 —— 它知道「现在中栏是工具面板还是 pane」，
+       不然工具面板开着的时候这里会把「导航链接」又点亮，左栏两颗一起亮。 */
+    adMarkSide();
     $('#adPaneNav').hidden = adPaneCur !== 'nav';
     $('#adPaneHome').hidden = adPaneCur !== 'home';
     $('#adPaneShare').hidden = adPaneCur !== 'share';
@@ -12869,7 +12934,7 @@ function setView(v){
   /* ★ R39：进管理台就把表格重画一遍。
      ★★ 必须放在上面那句 clearSel() **之后** —— 进管理台会先清勾选，
         先画后清的话表格里还留着勾选态、批量条却已经消失了。 */
-  if (v === 'admin') renderAdmin();
+  if (v === 'admin'){ renderAdmin(); adSyncDock(); }   /* ★ R55：进后台先量一次 pane 的顶边 */
   /* 这两样都靠滚动位置判断，切完视图得重算一次：
      回到导航页是从「藏起来」的状态回来的，不回导航页就是刚滚到顶。
      滚到底补渲染只在导航页有列表可补。 */
