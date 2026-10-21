@@ -2176,8 +2176,7 @@ body.post-on .app{display:none;}
 body.post-on .ps{display:block;min-height:100vh;padding-bottom:96px;}
 
 .ps-top{max-width:1400px;margin:0 auto;padding:20px 28px 6px;}
-/* 那颗「写一篇」：跟搜索卡里其他东西同高，别做成一颗孤零零的大按钮 */
-.ps-new{flex:none;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:11px;}
+/* ★ R56：原来这颗「写一篇」的样式跟着按钮一起删了（前台只读）。 */
 .ps-head{text-align:center;padding:20px 0 24px;}
 .ps-title{font-size:clamp(24px,3.4vw,32px);font-weight:600;letter-spacing:-.02em;color:var(--text);margin:0;}
 .ps-sub{margin:9px 0 0;font-size:13px;color:var(--muted);letter-spacing:.01em;}
@@ -2252,7 +2251,6 @@ body.post-on .ps{display:block;min-height:100vh;padding-bottom:96px;}
   padding:0 0 18px;
 }
 .ps-readbar .text-btn{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 12px;border-radius:10px;}
-.ps-readacts{display:flex;gap:8px;}
 .ps-rtitle{
   margin:6px 0 10px;font-size:clamp(23px,3.2vw,31px);font-weight:650;
   letter-spacing:-.02em;line-height:1.32;color:var(--text);
@@ -2347,6 +2345,51 @@ body.post-on .ps{display:block;min-height:100vh;padding-bottom:96px;}
 }
 .md-table tbody tr:nth-child(even) td{background:var(--surface);}
 
+/* ---------- 文章管理（R56） ----------
+   后台「文章」那颗打开的面板：一张列表 + 一颗「写一篇」。
+   ★ 面板本身在管理台里会被挂 .docked（跟 .ad-pane 同框），所以这里只管**里面这张表**，
+     别给它自己写宽高 —— 那会跟 R55 那套（> *:not(.ad-dockx){max-width:860px}）打架。
+   ★ 表用 table-layout:fixed：第一列吃剩余宽度，长标题才会规规矩矩出省略号；
+     默认的 auto 布局是「内容撑多宽就多宽」，一个长标题能把整张表顶出横向滚动条。 */
+.plist-h{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex:none;}
+/* ★ 面板右上角那颗常驻 ✕ 是 absolute/sticky 钉上去的，会跟「＋写一篇」抢那一角
+   （手机上尤其明显：两颗叠在一起）。给标题行右边让出一条。 */
+body.admin-on .mask.docked#postListMask .plist-h{padding-right:30px;}
+.plist-h h3{margin:0;font-size:14.5px;font-weight:660;letter-spacing:-.01em;}
+.plist-sub{margin:4px 0 0;font-size:12px;color:var(--muted);}
+.plist-wrap{
+  flex:1 1 auto;min-height:0;overflow:auto;margin-top:12px;
+  border:1px solid var(--line);border-radius:12px;background:var(--card);
+}
+.plist-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:13px;}
+.plist-table th{
+  position:sticky;top:0;z-index:2;background:var(--card);
+  border-bottom:1px solid var(--line);padding:9px 12px;
+  font-size:10px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  text-align:left;white-space:nowrap;
+}
+.plist-table td{
+  border-bottom:1px solid var(--line);padding:0 12px;height:46px;
+  vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.plist-table tr:last-child td{border-bottom:0;}
+.plist-row:hover{background:var(--accent-soft);}
+.plist-t{font-weight:600;color:var(--text);}
+.plist-pin{color:var(--accent);margin-right:2px;}
+.plist-d{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;}
+.plist-g{color:var(--muted);font-size:12px;}
+.plist-a{text-align:right;}
+.plist-a .text-btn{height:26px;padding:0 9px;font-size:12px;}
+.plist-empty{margin:14px 0 0;font-size:12.5px;color:var(--muted);text-align:center;}
+@media (max-width:620px){
+  /* ★ 手机上三列变两列：日期和标签都让位，标题才看得见几个字。
+     只藏标签的话标题列只剩 ~104（390 上截图里全是「● 把…」）。 */
+  .plist-table th:nth-child(2),.plist-table td:nth-child(2),
+  .plist-table th:nth-child(3),.plist-table td:nth-child(3){display:none;}
+  .plist-table th:nth-child(4),.plist-table td:nth-child(4){width:118px;}
+  .plist-a .text-btn[data-pact="read"]{display:none;}   /* 「读」省掉：标题本身就是入口 */
+}
+
 /* ---------- 写 / 预览 ----------
    ★ 这里不另起一套输入框：直接用 .field input / textarea 那套，
      只有正文那块单独加宽、加高、等宽字体。 */
@@ -2396,12 +2439,11 @@ body.post-on .ps{display:block;min-height:100vh;padding-bottom:96px;}
 }
 @media (max-width:619px){
   .ps-top .search-meta{display:none;}          /* 手机上「共 N 篇」先让位，搜索框更要紧 */
-  /* ★ 「写一篇」要留在**同一行**：.search-row 的基准宽是 260（桌面那档定的），
-     390 宽里塞不下 260 + 86 的按钮 → 整条换行，按钮孤零零掉到第二行左边。
-     这儿把基准宽让到 150（min-width 也要跟着放 0，不然 210 的下限照样顶出去），
-     一行就装下了：搜索框缩到 ~220、按钮 86，谁都不挤。 */
-  .ps-top .search-row{flex:1 1 150px;min-width:0;}
-  .ps-new{height:32px;padding:0 11px;}
+  /* ★ R56：「写一篇」撤了之后，这条行里只剩搜索框 —— 原来那句 `flex:1 1 150px`
+     是专门给那颗 86 宽的按钮腾地方的，没有按钮之后它砍不砍都一样（砍了量出来还是满宽，
+     变异刀砍不红就说明是死句子，删）。`min-width:0` 留着：320 那种窄屏上
+     .search-row 自带的 min-width:210 会把搜索框顶出横向滚动条。 */
+  .ps-top .search-row{min-width:0;}
   .ps-readbar .text-btn{height:30px;padding:0 10px;}
   /* 手机弹窗本来就窄，工具条右边那句「Tab 缩进 · ⌘⏎ 保存」先让位 ——
      它会挤掉一整行，而键盘上的 Tab 在手机上根本不存在 */
@@ -3850,22 +3892,19 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
             <span class="enter-hint">Esc</span>
           </label>
           <div class="search-meta" id="psMeta">—</div>
-          <button class="text-btn ps-new" id="psNew" type="button" title="在管理台里写（中间那块编辑区）">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            写一篇
-          </button>
         </div>
       </div>
       <div class="ps-head">
         <h1 class="ps-title">文章</h1>
-        <p class="ps-sub">用 Markdown 写，都存在这台浏览器里</p>
+        <!-- ★ R56：这一页只剩「读」。写 / 改 / 删全在管理台的「文章」里 ——
+             两处都能改的话，早晚有一处忘了同步校验。 -->
+        <p class="ps-sub">用 Markdown 写，都存在这台浏览器里 · 写和改在管理台</p>
       </div>
     </div>
     <div class="ps-grid" id="psGrid"></div>
     <div class="ps-empty" id="psEmpty" hidden>
       <p class="ps-empty-t">还没有文章</p>
       <p class="ps-empty-s">写第一篇吧 —— 支持标题、列表、代码块、表格和图片，语法见下。</p>
-      <button class="btn btn-primary" id="psEmptyNew" type="button" title="在管理台里写（中间那块编辑区）">写第一篇</button>
     </div>
   </div>
 
@@ -3875,15 +3914,47 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>
         全部文章
       </button>
-      <div class="ps-readacts" id="psReadActs">
-        <button class="text-btn" id="psEdit" type="button" title="在管理台里改（中间那块编辑区）">编辑</button>
-        <button class="text-btn" id="psDel" type="button">删除</button>
-      </div>
     </div>
     <h1 class="ps-rtitle" id="psRTitle"></h1>
     <div class="ps-rmeta" id="psRMeta"></div>
     <div class="md-body" id="psRBody"></div>
   </article>
+</div>
+
+<!-- ================= 文章管理（R56） =================
+     前台文章页（#postView）从这一轮起**只负责读**：那页上原来的
+     「写一篇 / 写第一篇 / 编辑 / 删除」四颗全撤了，增删改只留这里一条路。
+     走的还是 R55 那套：openMask() 在管理台里给它挂 .docked，于是它跟中栏那块
+     .ad-pane 同一个框（位置 / 圆角 / 描边 / 阴影 / 内边距），点左栏「文章」会亮。
+     ★ 表格用的是自己一套 .plist-*，**没有复用 .ad-table** —— 那个表的列宽是按
+       导航表格的八列写死的（th:nth-child(3) 17% 之类），套过来会把这一张挤歪。 -->
+<div class="mask" id="postListMask">
+  <div class="dialog plist-dialog" role="dialog" aria-modal="true" aria-labelledby="postListTitle">
+    <!-- 头：「写一篇」贴着标题行右边（跟分享页那颗「＋写一条」一个位置）。
+         ★ 别把它做成底栏那颗通栏大按钮 —— 面板铺满中栏之后，一颗通黑的大按钮
+           横贯 860，底下还空着一大片，看着像页面没加载完。 -->
+    <div class="plist-h">
+      <div>
+        <h3 id="postListTitle">文章</h3>
+        <p class="plist-sub" id="postListStat">—</p>
+      </div>
+      <button class="text-btn ad-w" id="postListNew" type="button">＋ 写一篇</button>
+    </div>
+    <div class="plist-wrap" id="postListWrap">
+      <table class="plist-table">
+        <thead>
+          <tr>
+            <th>标题</th>
+            <th style="width:104px">日期</th>
+            <th style="width:132px">标签</th>
+            <th style="width:150px;text-align:right">操作</th>
+          </tr>
+        </thead>
+        <tbody id="postListBody"></tbody>
+      </table>
+    </div>
+    <p class="plist-empty" id="postListEmpty" hidden>还没有文章 —— 点上面那颗「＋ 写一篇」。</p>
+  </div>
 </div>
 
 <!-- 写 / 改一篇文章。
@@ -4024,7 +4095,7 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
           <button class="ad-tool ad-w" type="button" data-tool="cloud" title="同步到 GitHub Gist"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 18.6h9.1a3.9 3.9 0 0 0 .5-7.8 5.3 5.3 0 0 0-10-1.1 4.1 4.1 0 0 0 .4 8.9z"/></svg></i>云同步</button>
           <button class="ad-tool ad-w" type="button" data-tool="sharenew" title="写一条时光轨迹"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 19.6h4L19 9a2.1 2.1 0 0 0-3-3L5.4 16.6z"/><path d="m14.6 6.4 3 3"/></svg></i>写一条</button>
           <!-- ★ R52：写文章也归后台。入口就在这儿（中间那块编辑区），文章页那边只读。 -->
-          <button class="ad-tool ad-w" type="button" data-tool="postnew" title="写一篇 / 改一篇（Markdown）"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h8.2L19 8.3v12.2H6z"/><path d="M13.8 3.6v4.9H19"/><path d="M9 13h6M9 16.4h4"/></svg></i>写文章</button>
+          <button class="ad-tool ad-w" type="button" data-tool="postnew" title="文章：写一篇 / 改 / 删"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h8.2L19 8.3v12.2H6z"/><path d="M13.8 3.6v4.9H19"/><path d="M9 13h6M9 16.4h4"/></svg></i>文章</button>
           <button class="ad-tool ad-w" type="button" data-tool="home" title="首页文案 / 二维码"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.6 8h8.8M18.6 8h.8M4.6 16h2.8M13 16h6.4"/><circle cx="16" cy="8" r="2.1"/><circle cx="10.2" cy="16" r="2.1"/></svg></i>首页设置</button>
           <button class="ad-tool ad-w" type="button" data-tool="fix" title="分享页顶部的固定链接"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15.4 3.8 4.8 4.8-2.9 1.1-4.6 4.6.3 2.9-4.9-4.9 2.9.3L15 8z"/><path d="M7.4 16.6 4 20"/></svg></i>固定链接</button>
         </div>
@@ -4909,9 +4980,9 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               <h3>三、导出为浏览器书签</h3>
               <p><strong>备份 / 恢复</strong> 弹窗里那颗「导出为浏览器书签（.html）」—— 把你所有的分类和链接还原成一个书签文件，可以导进任何浏览器。想「上岸」的时候用这个。</p>
               <h3>四、管理台（标签栏的「管理」）</h3>
-              <p>管理台的左边是一条<strong>通到底的侧栏</strong>：上面是站名，中间是「页面」（导航链接 / 首页 / 分享 / 文章），下面「工具」那一组就是平时散在各处的入口 —— 添加链接、导入、体检、分类、备份 / 恢复、云同步、写一条、写文章、首页、固定链接，一处就能点开，不用再跑回导航页。</p>
+              <p>管理台的左边是一条<strong>通到底的侧栏</strong>：上面是站名，中间是「页面」（导航链接 / 首页 / 分享 / 文章），下面「工具」那一组就是平时散在各处的入口 —— 添加链接、导入、体检、分类、备份 / 恢复、云同步、写一条、文章、首页、固定链接，一处就能点开，不用再跑回导航页。</p>
               <p>表格里<strong>改一条链接是「就地改」的</strong>：点行尾那颗 <strong>✎</strong>，这一行的分类 / 名字 / 网址三格当场变成输入框（分类是个下拉，改它等于整条搬家），改完按 <kbd>Enter</kbd> 或那颗 <strong>✓</strong> 存，按 <kbd>Esc</kbd> 或 <strong>×</strong> 放弃 —— 眼睛不用离开这一行，也不用先去右边再回来。</p>
-              <p>别的入口（<strong>添加链接</strong>、<strong>导入书签</strong>、<strong>备份 / 恢复</strong>、<strong>首页设置</strong>、<strong>写文章</strong>……）点开之后<strong>不弹窗、也不从旁边滑出来</strong>，而是<strong>把中栏那块内容整个换掉</strong> —— 跟点上面「导航链接 / 首页 / 分享页」是同一件事：左边那颗工具亮起来、右边那块地方换成它的内容，圆角、描边、边距都跟原来那张卡片<strong>严丝合缝地对齐</strong>，看起来就不是「浮上来一块」而是「换了一页」。<kbd>Esc</kbd> 先收面板，再按一次才回导航页；点上面「页面」那三颗里的任何一颗也会把面板收掉、直接翻过去。手机上它是一张从卡片顶上拉下来的整屏纸。</p>
+              <p>别的入口（<strong>添加链接</strong>、<strong>导入书签</strong>、<strong>备份 / 恢复</strong>、<strong>首页设置</strong>、<strong>文章</strong>……）点开之后<strong>不弹窗、也不从旁边滑出来</strong>，而是<strong>把中栏那块内容整个换掉</strong> —— 跟点上面「导航链接 / 首页 / 分享页」是同一件事：左边那颗工具亮起来、右边那块地方换成它的内容，圆角、描边、边距都跟原来那张卡片<strong>严丝合缝地对齐</strong>，看起来就不是「浮上来一块」而是「换了一页」。<kbd>Esc</kbd> 先收面板，再按一次才回导航页；点上面「页面」那三颗里的任何一颗也会把面板收掉、直接翻过去。手机上它是一张从卡片顶上拉下来的整屏纸。</p>
               <p>批量整理还有一张<strong>表格</strong>：点标签栏最右边那颗「管理」，就能看到<strong>所有分类的全部链接</strong> —— 分类、名称、网址、点过几次、最后一次打开是什么时候、标签、有没有置顶（屏幕够宽时还会多一列「添加时间」）。链接多的时候表格按页翻，右下角可以选<strong>每页 50 / 100 / 500 / 全部</strong>。</p>
               <ul>
                 <li><strong>筛</strong>：上面那排能按分类、按状态筛（从未点击 / 30 天没打开 / 已置顶 / 重复网址 / 没标签），也能直接搜名字、网址、标签。</li>
@@ -5247,28 +5318,29 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
                 <li>搜索框右边写着 <strong>共 N 篇</strong>；筛起来之后变成 <strong>筛出 x / N 篇</strong>。手机上这行字先让位（屏幕太窄），搜索框留着。</li>
                 <li>每张卡片：<strong>标题（最多两行）+ 摘要（最多两行）+ 日期 + 标签</strong>。标题和摘要都不会无限长，卡片高度才齐。</li>
                 <li><strong>顺序是「置顶优先，然后谁最近动过谁在前」</strong>。所以补完一篇半年前的笔记，它会自己浮上来 —— 不是按创建时间沉在底下。</li>
-                <li>一篇都还没有时，中间那行写「还没有文章」并给一颗 <strong>写第一篇</strong>；搜不到时写「没有匹配的文章」，那颗按钮收起来（这会儿该换词，不是该写新的）。</li>
+                <li>一篇都还没有时，中间写「还没有文章」，下面那句直接告诉你<strong>去哪儿写</strong>（管理台的「文章」）；搜不到时写「没有匹配的文章」—— 这会儿该换词，不是该写新的。<strong>这一页上没有写按钮</strong>：文章是内容，写和改都归后台。</li>
               </ul>
 
               <h3>读：点一下就进</h3>
               <ul>
                 <li>点卡片（或者键盘 <kbd>Tab</kbd> 到它、按 <kbd>Enter</kbd>）进<strong>阅读态</strong>。正文宽度收在 820，行高 1.85 —— 长文读起来不摇头。</li>
                 <li><strong>这是「同一页翻个面」，不换页也不刷新</strong>：地址栏还是 <code>#post</code>，按浏览器后退不会变成「退出文章页」。</li>
-                <li>右上两颗：<strong>编辑</strong> / <strong>删除</strong>；左上 <strong>全部文章</strong> 回列表。<kbd>Esc</kbd> 也分层退：<strong>第一下</strong>回列表（还在这一页），<strong>第二下</strong>才离开文章页。</li>
+                <li>左上 <strong>全部文章</strong> 回列表。这一页<strong>只负责读</strong>：右上没有「编辑 / 删除」了（都在后台，见下一段）。<kbd>Esc</kbd> 也分层退：<strong>第一下</strong>回列表（还在这一页），<strong>第二下</strong>才离开文章页。</li>
                 <li>长代码行<strong>自己在代码块里横着滚</strong>，宽表格也一样 —— 它们不会把整页撑宽。</li>
                 <li>代码块顶上会标出语言（<code>```js</code> 写的那段就标 <code>js</code>），一眼知道这是什么；表格<strong>隔行浅底</strong>、引用左边一根<strong>强调色实条</strong>，长文里靠这些分层次。</li>
               </ul>
 
-              <h3>写：在管理台中间那块编辑区里，写和预览两态</h3>
-              <p>文章是<strong>内容</strong>，所以写和改都归<strong>后台</strong>（见 <a data-help="s8">08 · 四、管理台</a>）。在文章页点 <strong>写一篇</strong> / <strong>编辑</strong>，会把你<strong>带到管理台</strong>，编辑区就在中间铺开 —— 不再是一个盖在文章页上的大弹窗。管理台工具箱里那颗 <strong>写文章</strong> 也能直接开。</p>
+              <h3>写 / 改 / 删：只在管理台的「文章」里</h3>
+              <p>文章是<strong>内容</strong>，所以增删改全归<strong>后台</strong>（见 <a data-help="s8">08 · 四、管理台</a>）。<strong>前台这一页只展示</strong> —— 原来那四颗（写一篇 / 写第一篇 / 编辑 / 删除）已经撤掉了，两处都能改的话早晚有一处忘了同步校验。</p>
+              <p>入口是管理台左栏「工具」里那颗 <strong>文章</strong>：点开先给一张<strong>列表</strong>（每行：标题 / 日期 / 标签 + 读 / 改 / 删 三颗），顶上那颗 <strong>＋ 写一篇</strong> 开新的一篇。</p>
               <ul>
-                <li>点 <strong>写一篇</strong>（只读状态下第一次点会先要管理员密码，跟改链接是同一道门）。<strong>没解锁的人不会被顺路送进后台</strong>：先问密码，密码对了那一下才接着把编辑栏打开。</li>
+                <li>点 <strong>＋ 写一篇</strong> 或某行的 <strong>✎ 改</strong>，编辑区就在中栏铺开（只读状态下第一次点会先要管理员密码，跟改链接是同一道门）。<strong>没解锁的人不会被顺路送进后台</strong>：先问密码，密码对了那一下才接着把编辑区打开。</li>
                 <li>它<strong>把中栏那块内容整个换掉</strong>（左边那条工具侧栏照样看得见、点得动，亮着的就是它），位置、圆角、描边、阴影跟原来那张卡片<strong>一模一样</strong> —— 跟点「导航链接 / 首页 / 分享页」是同一套观感。遮罩是透明的、不吃点击，所以想换个工具直接点左边那颗就行，换一颗就是换一块内容。手机上它是一张从卡片顶上拉下来的整屏纸（底下那颗浮动标签栏这时被盖住，用右上角 ✕ 或顶栏「返回导航」出来）。</li>
                 <li>四样东西：<strong>标题</strong>（必填，最多 60 字）、<strong>摘要</strong>（留空就自动从正文里挑第一段，去掉 <code>#</code> <code>**</code> 这些标记）、<strong>标签</strong>（逗号分隔，最多 6 个）、<strong>正文</strong>（Markdown）。</li>
                 <li>正文框<strong>吃掉剩下的高度</strong>：屏幕多高就能写多高，底下那颗 <strong>保存</strong> 永远贴着底边 —— 写长文不用一边敲一边滚。</li>
                 <li>正文框右上角有 <strong>写 / 预览</strong> 两个小按钮。预览用的是<strong>同一个渲染器</strong>，所以「预览看到什么样，存下来就是什么样」；预览开着的时候继续打字，它跟着变。切到预览时那块地方整个交给预览，长文在框里自己滚。</li>
                 <li><strong>标题空着不让存</strong>（会提示一句，框还留在那儿让你填）。</li>
-                <li>存完<strong>留在管理台</strong> —— 一次连着写两篇的人不该被踹回前台。想立刻看效果，点提示条上那颗 <strong>去读</strong>，直接落到刚写那篇的阅读态。改一篇也一样，改完还在这儿。</li>
+                <li>存完<strong>回到文章列表</strong>（列表当场多一行）—— 一次连着写两篇不用重新点左栏。想立刻看效果，点提示条上那颗 <strong>去读</strong>，直接落到刚写那篇的阅读态。改一篇也一样，改完回列表。</li>
                 <li>长文写到底不想找鼠标：<kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 直接保存。</li>
                 <li>要关掉：右上角那颗 <strong>✕</strong>、底下的 <strong>取消</strong>、或者按一下 <kbd>Esc</kbd>（只收这块编辑区，人还留在管理台）。</li>
               </ul>
@@ -5321,12 +5393,12 @@ body.sw-settling .sv{transition:transform .24s cubic-bezier(.22,.72,.28,1);}
               <p>全部在 <code>nav.posts.v1</code> 里，一篇一条。存的是<strong>你写的 Markdown 原文</strong>，不是渲染后的网页 —— 所以备份文件是能读的、以后换渲染方式也救得回来。</p>
               <ul>
                 <li>它<strong>进「导出备份」也进「自动快照」</strong>（纯文字、份量小，很值得带上），「清空全部数据」会把它一起清掉。</li>
-                <li><strong>导出的发布版里也带着文章</strong>，但那是「给别人读」的一页：<strong>写 / 编辑 / 删除三颗一律不出现</strong>，就算绕过按钮也进不去。</li>
+                <li><strong>导出的发布版里也带着文章</strong>，但那是「给别人读」的一页：前台本来就没有写入口，发布版连后台都没有，<strong>绕过按钮也进不去</strong>。</li>
                 <li>最多 200 篇，单篇正文最多 2 万字 —— 再多列表也没法看，浏览器的存储也扛不住。</li>
               </ul>
 
               <h3>手机上</h3>
-              <p>卡片改成<strong>一列</strong>，字号降一档；顶部「共 N 篇」让位，<strong>写一篇</strong>留在搜索框同一行；底部给浮动标签栏留了空，最后一张卡片不会被压住。写文章的编辑区在手机上是<strong>一张从卡片顶上拉下来的整屏纸</strong>，十颗快捷键按钮照样排得下。</p>
+              <p>卡片改成<strong>一列</strong>，字号降一档；顶部「共 N 篇」让位，搜索框独占一行；底部给浮动标签栏留了空，最后一张卡片不会被压住。写文章的编辑区在手机上是<strong>一张从卡片顶上拉下来的整屏纸</strong>，十颗快捷键按钮照样排得下；后台那张文章列表在手机上让掉「标签」那一列，「读」也省了（点标题就是读）。</p>
             </section>
 <!-- HELP-DOC-END -->
       </div>
@@ -8847,14 +8919,17 @@ $('#askMask').addEventListener('click', e => { if (e.target === $('#askMask')) a
      它们要是也贴右边，人一眼看不见，正好按在背后的表格上。
    ============================================================ */
 const AD_DOCKABLE = ['mask', 'importMask', 'moveMask', 'catMask', 'dataMask', 'cloudMask',
-  'healthMask', 'svFixMask', 'svMetaMask', 'homeMask', 'shareMask', 'postMask'];
+  'healthMask', 'svFixMask', 'svMetaMask', 'homeMask', 'shareMask', 'postMask', 'postListMask'];
 /* ★ R52：postMask 也进白名单 —— 写文章改到后台做（文章页那边只读）。
    ★ R55：这张表还把「哪块面板 = 左栏哪颗工具」记下来了，用来点左栏那颗的选中态。
      没有对上的（`moveMask` 批量移动、`svMetaMask` 分享页信息）就不亮 —— 它们本来
-     也不是从「工具」里点出来的。 */
+     也不是从「工具」里点出来的。
+   ★ R56：postListMask（文章列表）跟 postMask（编辑正文）是同一颗「文章」的两层，
+     所以两张表都映射到 postnew —— 从列表点进正文时，左边那颗不许熄。 */
 const AD_TOOL_MASK = {
   mask:'add', importMask:'import', catMask:'cats', healthMask:'health', dataMask:'data',
-  cloudMask:'cloud', shareMask:'sharenew', postMask:'postnew', homeMask:'home', svFixMask:'fix'
+  cloudMask:'cloud', shareMask:'sharenew', postMask:'postnew', postListMask:'postnew',
+  homeMask:'home', svFixMask:'fix'
 };
 
 /* ★ R55：工具面板要跟中栏那块 pane **同框**，而 pane 的顶边是会变的
@@ -12431,7 +12506,7 @@ document.querySelector('.ad-toolgrid').addEventListener('click', e => {
   if (t === 'data'){ openData(); return; }
   if (t === 'cloud'){ openCloud(); return; }
   if (t === 'sharenew'){ shareFormOpen(''); return; }
-  if (t === 'postnew'){ postFormOpen(''); return; }   // R52：写文章在后台，编辑栏贴右边
+  if (t === 'postnew'){ postListOpen(); return; }   /* ★ R56：先给文章列表，写 / 改 / 删都在那儿 */
   if (t === 'home'){ homeFormOpen(); return; }
   if (t === 'fix'){ svFixFormOpen(''); return; }
 });
@@ -13009,17 +13084,18 @@ function renderPost(){
   if (meta) meta.textContent = q ? ('筛出 ' + list.length + ' / ' + total + ' 篇') : ('共 ' + total + ' 篇');
   const empty = $('#psEmpty');
   if (empty) {
-    /* 两种「空」要分开说：一篇都没有（该写第一篇）vs 搜不到（该换个词） */
+    /* 两种「空」要分开说：一篇都没有（该去后台写）vs 搜不到（该换个词） */
     const noData = total === 0;
     empty.hidden = list.length > 0;
     const t = empty.querySelector('.ps-empty-t'), s = empty.querySelector('.ps-empty-s');
     if (t) t.textContent = noData ? '还没有文章' : '没有匹配的文章';
-    if (s) s.textContent = noData ? '写第一篇吧 —— 支持标题、列表、代码块、表格和图片。'
-                                  : '换个词试试：标题、正文、标签都能搜到。';
-    const b = $('#psEmptyNew'); if (b) b.hidden = !noData;
+    /* ★ R56：这一页不再提供「写第一篇」—— 空态只说**去哪儿写**。
+       发布版里连后台都没有，就别指路了。 */
+    if (s) s.textContent = noData
+      ? (publish ? '这一页只负责展示，还没有内容。'
+                 : '去管理台的「文章」（左栏 · 工具）写第一篇 —— 支持标题、列表、代码块、表格和图片。')
+      : '换个词试试：标题、正文、标签都能搜到。';
   }
-  /* 发布版是「给别人看的一页」，没有后台：写 / 改 / 删三颗一律不出现 */
-  const nb = $('#psNew'); if (nb) nb.hidden = publish;
   const qc = $('#psQClear'); if (qc) qc.hidden = !postQ;
 }
 
@@ -13036,7 +13112,7 @@ function postOpen(id){
   /* ★★ mdToHtml 的输出里所有用户文字都已经过 esc（见那边三条安全规矩），
      所以这里可以放心 innerHTML —— 这不是「信任用户输入」，是「渲染器已经兜住了」。 */
   if (b) b.innerHTML = mdToHtml(p.body || '');
-  const acts = $('#psReadActs'); if (acts) acts.hidden = publish;
+  /* ★ R56：阅读态不再有「编辑 / 删除」两颗（前台只展示），所以这里也不用再管它们。 */
   $('#psList').hidden = true;
   $('#psRead').hidden = false;
   document.documentElement.scrollTop = 0;
@@ -13055,6 +13131,47 @@ function postLeave(){
   const q = $('#psQ'); if (q) q.value = '';
 }
 
+/* ---------- 文章管理（R56，只在后台） ----------
+   小宝：「文章页面也在后台编辑操作，前台只是展示」。
+   于是前台那页上四颗编辑入口（写一篇 / 写第一篇 / 编辑 / 删除）全撤，
+   增删改一律走这块面板 —— 从后台左栏「工具 · 文章」进来。
+   ★ 三件事都在这儿做：读一眼（去读）、改（开编辑面板）、删（带确认 + 快照）。
+   ★ 列表只画一遍，不监听数据变化：每次开面板 / 存完 / 删完都显式调一次
+     renderPostList()，跟分享页那张表一个套路（少一个依赖，少一处忘记刷新）。 */
+let postFromList = false;      /* 这次编辑是不是从文章列表点进来的（存完回列表） */
+
+function renderPostList(){
+  const body = $('#postListBody'); if (!body) return;
+  const list = postsSorted();
+  body.innerHTML = list.map(p => {
+    const tags = p.tags.slice(0, 2).map(t => esc(t)).join(' · ');
+    return '<tr class="plist-row" data-id="' + esc(p.id) + '">' +
+      '<td class="plist-t">' + (p.pin ? '<span class="plist-pin" title="置顶">●</span>' : '') + esc(p.title) + '</td>' +
+      '<td class="plist-d">' + esc(postDay(postWhen(p))) + '</td>' +
+      '<td class="plist-g">' + tags + '</td>' +
+      '<td class="plist-a">' +
+        '<button class="text-btn" type="button" data-pact="read" title="去文章页读">读</button>' +
+        '<button class="text-btn" type="button" data-pact="edit" title="在这块地方改">✎ 改</button>' +
+        '<button class="text-btn danger" type="button" data-pact="del" title="删掉">删</button>' +
+      '</td></tr>';
+  }).join('');
+  const st = $('#postListStat');
+  if (st) st.textContent = list.length
+    ? ('共 ' + list.length + ' 篇 · 都存在这台浏览器里')
+    : '还没写过文章';
+  const tb = $('#postListWrap'); if (tb) tb.hidden = list.length === 0;
+  const em = $('#postListEmpty'); if (em) em.hidden = list.length > 0;
+}
+
+function postListOpen(){
+  if (publish) return;             /* 发布版没有后台，这条路本来就不该存在 */
+  if (!admOK()){ requireAdmin('管理文章').then(ok => { if (ok) postListOpen(); }); return; }
+  renderPostList();
+  /* 跟 postFormOpen 同一个理由：先切视图再开面板，否则会当场演一遍「居中弹窗 → 贴中间」 */
+  if (curView !== 'admin') setView('admin');
+  openMask('postListMask');
+}
+
 /* ---------- 写 / 改 ---------- */
 function postMode(prev){
   postPrev = !!prev;
@@ -13069,12 +13186,13 @@ function postMode(prev){
   if (w) w.classList.toggle('on', !postPrev);
   if (r) r.classList.toggle('on', postPrev);
 }
-function postFormOpen(id){
+function postFormOpen(id, fromList){
   /* ★ 写文章是**动内容**，跟分享页「写一条」同一条门禁：没解锁先问密码。
      发布版里根本没有后台，直接不进。 */
   if (publish) return;
-  if (!admOK()){ requireAdmin(id ? '编辑文章' : '写文章').then(ok => { if (ok) postFormOpen(id); }); return; }
+  if (!admOK()){ requireAdmin(id ? '编辑文章' : '写文章').then(ok => { if (ok) postFormOpen(id, fromList); }); return; }
   postEditId = id || '';
+  postFromList = !!fromList;      /* ★ R56：从文章列表进来的，存完回列表 */
   const p = id ? postFind(id) : null;
   const mt = $('#postMTitle'); if (mt) mt.textContent = p ? '编辑文章' : '写一篇';
   $('#postTitle').value = p ? p.title : '';
@@ -13087,6 +13205,10 @@ function postFormOpen(id){
      先开面板再切视图的话，它会当场上演「居中弹窗 → 贴右边」的跳变。
      ★ 门禁还是在前面：没解锁的人不会因为点个「编辑」就被送进后台。 */
   if (curView !== 'admin') setView('admin');
+  /* ★ R56：从文章列表点「✎ 改」进来时列表还开着 —— 两块 .docked 会同时 .show，
+     叠在同一格里（后开的那块把前一块盖住，但 DOM 里两层都在，焦点和 Esc 都会错乱）。
+     所以先统一收干净，再开编辑面板。 */
+  closeAllMasks();
   openMask('postMask');
   setTimeout(() => { try { $('#postTitle').focus(); } catch (e) {} }, 40);
 }
@@ -13121,6 +13243,9 @@ function postSaveNow(){
          不该被踹回前台；想立刻看效果，toast 上挂一颗「去读」。
        · 万一还有别的入口是在文章页里写的（比如以后加的草稿按钮），照旧直接进阅读态。 */
   if (curView === 'admin'){
+    /* ★ R56：从文章列表点进来的，存完**回到列表**（连着改第二篇不用重新点左栏）。
+       不是从列表来的（理论上没了，留着兜底），就只是关面板留在后台。 */
+    if (postFromList){ postFromList = false; postListOpen(); }
     toast(old ? '已保存' : '写好了', {
       label: '去读',
       fn: () => { setView('post'); postOpen(openId); },
@@ -13130,22 +13255,25 @@ function postSaveNow(){
   postOpen(openId);
   toast(old ? '已保存' : '写好了');
 }
+/* ★ R56：返回一个 Promise（删没删成）—— 后台文章列表要等它回来才知道该不该重画。
+   以前是「自己删完自己重画前台列表」，现在多了个后台列表，等结果更省事。 */
 function postDelete(id){
-  const p = postFind(id); if (!p) return;
-  if (publish) return;
-  if (!admOK()){ requireAdmin('删除文章').then(ok => { if (ok) postDelete(id); }); return; }
-  askConfirm({
+  const p = postFind(id); if (!p) return Promise.resolve(false);
+  if (publish) return Promise.resolve(false);
+  if (!admOK()) return requireAdmin('删除文章').then(ok => ok ? postDelete(id) : false);
+  return askConfirm({
     title: '删掉这篇？',
     body: '《' + p.title + '》会从这台设备上删掉。会先存一份快照，点错了能去「自动快照」里退回来。',
     ok: '删掉',
   }).then(ok => {
-    if (!ok) return;
+    if (!ok) return false;
     snapshot('删文章前');
     posts = posts.filter(x => x.id !== id);
     save(KEY_POSTS, posts);
     postCloseRead();
     renderPost();
     toast('已删除');
+    return true;
   });
 }
 
@@ -13371,11 +13499,22 @@ $('#psQClear').addEventListener('click', () => {
   postQ = ''; $('#psQ').value = ''; renderPost();
   try { $('#psQ').focus(); } catch (e) {}
 });
-$('#psNew').addEventListener('click', () => postFormOpen(''));
-$('#psEmptyNew').addEventListener('click', () => postFormOpen(''));
 $('#psBack').addEventListener('click', () => { postCloseRead(); renderPost(); });
-$('#psEdit').addEventListener('click', () => { if (postCur) postFormOpen(postCur); });
-$('#psDel').addEventListener('click', () => { if (postCur) postDelete(postCur); });
+/* ★ R56：前台文章页只读 —— 原来的「写一篇 / 写第一篇 / 编辑 / 删除」四颗连同它们的
+   监听一起删了。增删改只剩后台「文章」那一块（面板 + 列表），见 postListOpen()。 */
+$('#postListNew').addEventListener('click', () => postFormOpen('', true));
+$('#postListBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-pact]'); if (!b) return;
+  const tr = b.closest('tr[data-id]'); if (!tr) return;
+  const id = tr.dataset.id;
+  if (!postFind(id)) return;                       /* 行被重画掉了就别再动了 */
+  if (b.dataset.pact === 'read'){ closeAllMasks(); setView('post'); postOpen(id); return; }
+  if (b.dataset.pact === 'edit'){ postFormOpen(id, true); return; }
+  if (b.dataset.pact === 'del'){
+    postDelete(id).then(ok => { if (ok) renderPostList(); });   /* 删掉了才重画，取消就别动 */
+    return;
+  }
+});
 $('#postTabWrite').addEventListener('click', () => postMode(false));
 $('#postTabPrev').addEventListener('click', () => postMode(true));
 /* 写的时候在 textarea 里敲，预览要跟着变才叫预览（切回「写」不重算，省一次渲染） */
@@ -14271,7 +14410,8 @@ function exportPublish(){
   const psL = clone.querySelector('#psList'), psR = clone.querySelector('#psRead');
   if (psL) psL.hidden = false;
   if (psR) psR.hidden = true;
-  const psActs = clone.querySelector('#psReadActs'); if (psActs) psActs.hidden = false;
+  /* ★ R56：那两颗（编辑 / 删除）已经从前台删掉了，这里不用再「摆回可见」——
+     以前是为了防止把「发布版隐藏写按钮」的 hidden 状态烘进去。 */
   /* ★ R48：标题和分享卡片按**你自定义的那一份**写死进静态文件。
      爬虫（微信 / 社媒 / iMessage）不执行 JS，运行时那句 syncTitle() 它们看不见 ——
      只有烘焙进这份 HTML 才算数。这也是「改了站名，分享出去还是 Nav」的正解。 */
